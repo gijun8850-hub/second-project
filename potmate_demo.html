@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팟메이트(PotMate) 데모</title>
+  <style>
+:root {
+  --color-main: #AA01E7;
+  --color-soft: #F8E7FE;
+  --color-ink: #24142B;
+  --color-muted: #7B6685;
+  --color-line: #EFD8F8;
+  --color-card: rgba(255, 255, 255, 0.9);
+  --color-success: #1E9B68;
+  --color-warning: #D86A00;
+  --gradient-main: linear-gradient(135deg, #AA01E7 0%, #CF4BFF 48%, #7F39FB 100%);
+  --gradient-soft: linear-gradient(145deg, #FFFFFF 0%, #F8E7FE 100%);
+  --gradient-onboarding: linear-gradient(160deg, #FFFFFF 0%, #FDF7FF 34%, #F8E7FE 68%, #F1D8FB 100%);
+  --gradient-hub: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 231, 254, 0.96) 44%, rgba(241, 216, 251, 0.95) 100%);
+  --shadow-card: 0 18px 42px rgba(91, 17, 125, 0.14);
+  --shadow-button: 0 12px 24px rgba(170, 1, 231, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  font-family: "Pretendard", "SUIT", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(248, 231, 254, 0.95), transparent 32rem),
+    linear-gradient(180deg, #fff 0%, #fbf3ff 100%);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.mobile-shell {
+  position: relative;
+  width: min(100%, 440px);
+  min-height: 100vh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff 0%, #fdf8ff 48%, #f8edff 100%);
+  box-shadow: 0 0 50px rgba(58, 19, 84, 0.12);
+}
+
+.screen {
+  min-height: 100vh;
+  padding: 22px 18px 102px;
+}
+
+.screen-enter {
+  animation: screenEnter 220ms ease;
+}
+
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-screen {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 36px 24px;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.92), transparent 9rem),
+    radial-gradient(circle at 82% 10%, rgba(222, 180, 247, 0.5), transparent 8rem),
+    radial-gradient(circle at 70% 78%, rgba(170, 1, 231, 0.12), transparent 11rem),
+    var(--gradient-onboarding);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  color: var(--color-main);
+}
+
+.brand-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 16px;
+  color: var(--color-main);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 #fff, 0 14px 30px rgba(170, 1, 231, 0.16);
+}
+
+.onboarding-hero h1 {
+  margin: 68px 0 14px;
+  font-size: 42px;
+  line-height: 1.06;
+}
+
+.onboarding-hero p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.floating-preview,
+.form-stack,
+.detail-stack,
+.payment-stack,
+.timeline-list,
+.chat-list,
+.coupon-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.preview-card,
+.glass-card,
+.pot-card,
+.history-card,
+.settlement-row,
+.coupon-card {
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-card);
+}
+
+.preview-card {
+  padding: 18px;
+  backdrop-filter: blur(16px);
+}
+
+.preview-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.preview-card span,
+.page-title p,
+.card-copy,
+.inline-note,
+.history-card span,
+.announcement,
+.timeline-item p,
+.coupon-card p,
+.hub-highlight p {
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.gradient-button,
+.secondary-button,
+.ghost-button,
+.danger-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: 18px;
+  font-weight: 800;
+}
+
+.gradient-button {
+  color: #fff;
+  background: var(--gradient-main);
+  box-shadow: var(--shadow-button);
+}
+
+.secondary-button {
+  color: var(--color-main);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--color-line), 0 12px 26px rgba(80, 17, 110, 0.1);
+}
+
+.ghost-button {
+  min-height: 38px;
+  color: var(--color-main);
+  background: var(--color-soft);
+}
+
+.danger-button {
+  color: #B4234B;
+  background: #FFE9F0;
+}
+
+.full-button {
+  width: 100%;
+}
+
+.topbar,
+.section-heading,
+.pot-card__head,
+.pot-card__footer,
+.info-row,
+.history-card,
+.settlement-row,
+.chat-header__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topbar {
+  margin-bottom: 18px;
+}
+
+.topbar--hub {
+  margin-bottom: 16px;
+}
+
+.location-pill,
+.status-pill,
+.category-badge,
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.location-pill {
+  padding: 9px 12px;
+  color: var(--color-main);
+  background: var(--color-soft);
+}
+
+.status-pill {
+  padding: 7px 10px;
+  color: #6D22BC;
+  background: #F1DDFF;
+}
+
+.category-badge {
+  padding: 6px 9px;
+  color: #fff;
+  background: var(--gradient-main);
+}
+
+.trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trust-badge {
+  padding: 7px 10px;
+  color: var(--color-main);
+  background: rgba(248, 231, 254, 0.9);
+}
+
+.hub-highlight {
+  margin-bottom: 18px;
+  padding: 22px;
+  border-radius: 30px;
+  background: var(--gradient-hub);
+  box-shadow: var(--shadow-card);
+}
+
+.hub-highlight__label {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--color-main);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hub-highlight h1,
+.page-title h1,
+.detail-hero h1,
+.join-summary h1 {
+  margin: 12px 0 10px;
+  font-size: 29px;
+  line-height: 1.18;
+}
+
+.hub-summary-grid,
+.meta-grid,
+.spotlight-grid,
+.wallet-quick-charge,
+.stage-track,
+.host-actions,
+.filter-row {
+  display: grid;
+  gap: 10px;
+}
+
+.hub-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.hub-stat {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: inset 0 1px 0 #fff;
+}
+
+.hub-stat span,
+.hub-stat em,
+.filter-field span,
+.form-field span,
+.message-name,
+.participant-count,
+.timeline-item p,
+.chat-header__title span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hub-stat strong {
+  display: block;
+  margin: 6px 0 2px;
+  font-size: 18px;
+}
+
+.search-box,
+.filter-field,
+.form-field {
+  display: grid;
+  gap: 7px;
+}
+
+.search-box {
+  margin: 18px 0 14px;
+}
+
+.search-box input,
+.filter-field select,
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  outline: none;
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 1px 0 #fff, 0 10px 22px rgba(80, 17, 110, 0.08);
+}
+
+.search-box input,
+.filter-field select,
+.form-field input,
+.form-field select {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.form-field textarea {
+  min-height: 104px;
+  padding: 14px;
+  resize: vertical;
+}
+
+.filter-row {
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 14px;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 12px;
+  scrollbar-width: none;
+}
+
+.category-tabs button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--color-muted);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.category-tabs button.is-active {
+  color: #fff;
+  background: var(--gradient-main);
+  box-shadow: var(--shadow-button);
+}
+
+.home-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.home-section h2,
+.timeline-card h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.section-heading span {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.closing-soon-section .section-heading span {
+  color: var(--color-warning);
+}
+
+.pot-list {
+  display: grid;
+  gap: 16px;
+}
+
+.spotlight-grid {
+  grid-template-columns: 1fr;
+}
+
+.pot-card {
+  padding: 20px;
+  background: var(--gradient-soft);
+}
+
+.pot-card--compact {
+  padding: 18px;
+}
+
+.pot-card h2 {
+  margin: 14px 0 8px;
+  font-size: 19px;
+}
+
+.meta-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 14px 0 16px;
+}
+
+.meta-chip {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+  color: var(--color-muted);
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 12px;
+}
+
+.meta-chip strong,
+.timeline-item strong,
+.history-card strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-ink);
+  font-size: 14px;
+}
+
+.glass-card {
+  padding: 18px;
+}
+
+.detail-hero,
+.join-summary {
+  text-align: left;
+}
+
+.detail-grid,
+.timeline-card {
+  margin-top: 14px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #E6D3F3;
+  box-shadow: 0 0 0 4px rgba(248, 231, 254, 0.8);
+}
+
+.timeline-item.is-done .timeline-dot {
+  background: var(--color-success);
+}
+
+.timeline-item.is-current .timeline-dot {
+  background: var(--color-main);
+}
+
+.participant-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.avatar,
+.message-profile {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--gradient-main);
+  font-weight: 900;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+}
+
+.participant-count {
+  color: var(--color-muted);
+}
+
+.back-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  color: var(--color-main);
+  background: var(--color-soft);
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.fixed-action {
+  position: sticky;
+  bottom: 84px;
+  margin-top: 18px;
+}
+
+.price-xl {
+  display: block;
+  margin: 16px 0;
+  color: var(--color-main);
+  font-size: 36px;
+}
+
+.notice {
+  padding: 14px;
+  border-radius: 18px;
+  color: #6D22BC;
+  background: var(--color-soft);
+  line-height: 1.5;
+}
+
+.notice--warning {
+  color: var(--color-warning);
+}
+
+.chat-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: -22px -18px 20px;
+  padding: 20px 18px 22px;
+  color: #fff;
+  background: var(--gradient-main);
+  box-shadow: 0 14px 26px rgba(85, 0, 134, 0.18);
+}
+
+.chat-header strong {
+  display: block;
+  font-size: 20px;
+}
+
+.settlement-stage {
+  margin-bottom: 14px;
+}
+
+.stage-track {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stage-step {
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(239, 216, 248, 0.9);
+}
+
+.stage-step strong {
+  display: block;
+  font-size: 13px;
+}
+
+.stage-step span {
+  color: var(--color-muted);
+  font-size: 11px;
+}
+
+.stage-step.is-done {
+  background: rgba(232, 251, 243, 0.96);
+}
+
+.stage-step.is-done strong {
+  color: var(--color-success);
+}
+
+.stage-step.is-current {
+  background: rgba(248, 231, 254, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(170, 1, 231, 0.22);
+}
+
+.stage-step.is-current strong {
+  color: var(--color-main);
+}
+
+.host-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.host-actions button {
+  min-height: 40px;
+  border-radius: 14px;
+  color: var(--color-main);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 10px 20px rgba(80, 17, 110, 0.08);
+}
+
+.announcement {
+  padding: 16px;
+  border-radius: 18px;
+  background: #F5E6FF;
+  font-weight: 800;
+}
+
+.chat-list {
+  margin: 18px 0;
+}
+
+.message-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.message-row.is-own {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: end;
+}
+
+.message-profile {
+  width: 40px;
+  height: 40px;
+  font-size: 13px;
+  box-shadow: 0 10px 20px rgba(170, 1, 231, 0.18);
+}
+
+.message-body {
+  display: grid;
+  max-width: 84%;
+  gap: 6px;
+}
+
+.message-row:not(.is-own) .message-body {
+  justify-items: start;
+}
+
+.message-row.is-own .message-body {
+  justify-items: end;
+}
+
+.message-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-muted);
+}
+
+.host-badge {
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--color-main);
+  background: var(--color-soft);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.message {
+  max-width: 100%;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(80, 17, 110, 0.08);
+  line-height: 1.5;
+}
+
+.message.mine {
+  color: #fff;
+  background: var(--gradient-main);
+}
+
+.message.system {
+  justify-self: center;
+  max-width: 100%;
+  color: var(--color-main);
+  background: var(--color-soft);
+  text-align: center;
+  font-weight: 800;
+}
+
+.chat-input {
+  position: sticky;
+  bottom: 78px;
+  display: grid;
+  grid-template-columns: 1fr 74px;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  background: linear-gradient(180deg, rgba(253, 248, 255, 0), #fdf8ff 35%);
+}
+
+.chat-input input {
+  min-width: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  padding: 0 14px;
+}
+
+.history-card,
+.settlement-row,
+.coupon-card {
+  padding: 14px;
+  background: #fff;
+}
+
+.history-card__meta {
+  text-align: right;
+}
+
+.wallet-card {
+  overflow: hidden;
+  color: #fff;
+  background: var(--gradient-main);
+}
+
+.wallet-card .price-xl,
+.wallet-card p {
+  color: #fff;
+}
+
+.wallet-quick-charge {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 14px 0 10px;
+}
+
+.quick-charge-button {
+  min-height: 54px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.coupon-card span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--color-main);
+  background: var(--color-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.coupon-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.empty-state {
+  padding: 28px 18px;
+  border-radius: 18px;
+  color: var(--color-muted);
+  background: rgba(255, 255, 255, 0.76);
+  text-align: center;
+}
+
+.bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  width: min(100%, 440px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 10px 12px 14px;
+  border-top: 1px solid rgba(239, 216, 248, 0.9);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 -16px 36px rgba(80, 17, 110, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.bottom-nav button {
+  min-height: 52px;
+  border-radius: 18px;
+  color: var(--color-muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.bottom-nav button.is-active {
+  color: var(--color-main);
+  background: var(--color-soft);
+}
+
+.toast {
+  position: fixed;
+  right: 50%;
+  bottom: 92px;
+  z-index: 9;
+  width: min(360px, calc(100% - 36px));
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: #fff;
+  background: rgba(36, 20, 43, 0.92);
+  box-shadow: 0 16px 34px rgba(36, 20, 43, 0.26);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(50%, 14px);
+  transition: 180ms ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(50%, 0);
+}
+
+@media (min-width: 720px) {
+  body {
+    padding: 24px 0;
+  }
+
+  .mobile-shell {
+    min-height: calc(100vh - 48px);
+    border-radius: 34px;
+  }
+
+  .bottom-nav {
+    bottom: 24px;
+    border-radius: 0 0 34px 34px;
+  }
+}
+
+@media (max-width: 420px) {
+  .screen {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .hub-highlight h1,
+  .page-title h1,
+  .detail-hero h1,
+  .join-summary h1 {
+    font-size: 25px;
+  }
+
+  .host-actions,
+  .wallet-quick-charge,
+  .filter-row,
+  .hub-summary-grid,
+  .meta-grid,
+  .stage-track {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <main id="app" class="mobile-shell" aria-live="polite"></main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+/* js/potmate-data.js */
+window.PotMateSeed = {
+  user: {
+    id: 'me',
+    name: '민아',
+    avatar: '민',
+    campus: '가천대학교',
+    role: 'student',
+    locationLabel: '비전타워 앞',
+    verifiedDistanceMeters: 220
+  },
+  pointBalance: 28000,
+  chargeOptions: [5000, 10000, 30000, 50000],
+  activeChatId: 'pot-taxi-1',
+  promoBanners: [
+    {
+      id: 'promo-food',
+      label: '제휴 쿠폰',
+      title: '배달팟 첫 참여 2,000원 할인',
+      description: '오늘 23:59까지 사용 가능'
+    }
+  ],
+  coupons: [
+    {
+      id: 'coupon-first',
+      title: '첫 참여 할인',
+      benefit: '2,000원 즉시 차감',
+      appliesTo: '배달팟'
+    },
+    {
+      id: 'coupon-cafe',
+      title: '카페팟 전용 쿠폰',
+      benefit: '1,000원 할인',
+      appliesTo: '기타팟'
+    }
+  ],
+  pots: [
+    {
+      id: 'pot-delivery-1',
+      category: '배달팟',
+      subCategory: '마라탕',
+      title: '마라탕 같이 시켜요',
+      description: '최소 주문금액 맞추고 비전타워 1층에서 바로 받아가요.',
+      host: { id: 'host-1', name: '서휘', avatar: '서' },
+      currentMembers: 3,
+      maxMembers: 4,
+      participants: [
+        { id: 'host-1', name: '서휘', avatar: '서', paid: true },
+        { id: 'mate-1', name: '지민', avatar: '지', paid: false },
+        { id: 'mate-2', name: '유리', avatar: '유', paid: false }
+      ],
+      waitingParticipants: [],
+      perPersonAmount: 12000,
+      distanceMeters: 180,
+      joinRadiusMeters: 300,
+      locationSummary: '비전타워 1층 로비',
+      deadlineLabel: '18분 후 마감',
+      recruitStatus: '마감임박',
+      settlementStage: '정산 대기',
+      urgencyLabel: '1명 남음',
+      urgencyRank: 1,
+      trustBadges: ['위치인증', '방장인증', '안전정산'],
+      detail: {
+        subCategory: '마라탕',
+        menuHighlight: '소고기 마라탕 + 꿔바로우',
+        orderTime: '오늘 18:40',
+        pickupPoint: '비전타워 1층 로비'
+      },
+      timeline: [
+        { label: '모집 시작', state: 'done' },
+        { label: '주문 예정', state: 'current' },
+        { label: '정산 완료', state: 'pending' }
+      ]
+    },
+    {
+      id: 'pot-taxi-1',
+      category: '택시팟',
+      subCategory: '심야귀가',
+      title: '강남역 11번 출구 택시팟',
+      description: '정문 앞에서 만나 강남역까지 바로 이동해요. 출발 전에 정산 요청할게요.',
+      host: { id: 'me', name: '민아', avatar: '민', isMe: true },
+      currentMembers: 3,
+      maxMembers: 4,
+      participants: [
+        { id: 'me', name: '민아', avatar: '민', paid: true, isMe: true },
+        { id: 'mate-3', name: '도윤', avatar: '도', paid: false },
+        { id: 'mate-4', name: '하린', avatar: '하', paid: false }
+      ],
+      waitingParticipants: [{ id: 'wait-1', name: '수빈', avatar: '수' }],
+      perPersonAmount: 6500,
+      distanceMeters: 120,
+      joinRadiusMeters: 500,
+      locationSummary: '정문 앞 택시 승강장',
+      deadlineLabel: '27분 후 출발',
+      recruitStatus: '모집중',
+      settlementStage: '정산 대기',
+      urgencyLabel: '한 자리 남음',
+      urgencyRank: 2,
+      trustBadges: ['위치인증', '방장인증', '안전정산'],
+      detail: {
+        subCategory: '심야귀가',
+        departurePoint: '가천대 정문 앞',
+        destination: '강남역 11번 출구',
+        departureTime: '오늘 21:20',
+        estimatedFare: '총 26,000원 예상'
+      },
+      timeline: [
+        { label: '모집 시작', state: 'done' },
+        { label: '출발 대기', state: 'current' },
+        { label: '정산 완료', state: 'pending' }
+      ]
+    },
+    {
+      id: 'pot-sub-1',
+      category: '구독팟',
+      subCategory: 'OTT',
+      title: '넷플릭스 프리미엄 4인팟',
+      description: '이번 달 프리미엄 남은 자리 한 명 구해요. 정산 완료되면 바로 계정 공유해요.',
+      host: { id: 'host-3', name: '유진', avatar: '유' },
+      currentMembers: 3,
+      maxMembers: 4,
+      participants: [
+        { id: 'host-3', name: '유진', avatar: '유', paid: true },
+        { id: 'me', name: '민아', avatar: '민', paid: false, isMe: true },
+        { id: 'mate-5', name: '준호', avatar: '준', paid: true }
+      ],
+      waitingParticipants: [],
+      perPersonAmount: 4250,
+      distanceMeters: 90,
+      joinRadiusMeters: 500,
+      locationSummary: '온라인 공유',
+      deadlineLabel: '오늘 23:50 마감',
+      recruitStatus: '모집중',
+      settlementStage: '정산 요청됨',
+      urgencyLabel: '정산 요청됨',
+      urgencyRank: 3,
+      trustBadges: ['방장인증', '안전정산'],
+      detail: {
+        subCategory: 'OTT',
+        serviceName: '넷플릭스 프리미엄',
+        period: '2026.05.01 - 2026.05.31',
+        seatType: '4인 공유'
+      },
+      timeline: [
+        { label: '자리 모집', state: 'done' },
+        { label: '정산 요청됨', state: 'current' },
+        { label: '공유 시작', state: 'pending' }
+      ]
+    },
+    {
+      id: 'pot-etc-1',
+      category: '기타팟',
+      subCategory: '공동구매',
+      title: '시험기간 간식 공동구매',
+      description: '쿠키랑 커피를 같이 주문해서 중앙도서관 라운지에서 나눠요.',
+      host: { id: 'host-4', name: '채린', avatar: '채' },
+      currentMembers: 5,
+      maxMembers: 8,
+      participants: [
+        { id: 'host-4', name: '채린', avatar: '채', paid: true },
+        { id: 'mate-6', name: '민재', avatar: '민', paid: false }
+      ],
+      waitingParticipants: [],
+      perPersonAmount: 3000,
+      distanceMeters: 460,
+      joinRadiusMeters: 500,
+      locationSummary: '중앙도서관 라운지',
+      deadlineLabel: '내일 13:00 마감',
+      recruitStatus: '모집중',
+      settlementStage: '정산 대기',
+      urgencyLabel: '시험기간 추천',
+      urgencyRank: 4,
+      trustBadges: ['위치인증', '방장인증', '안전정산'],
+      detail: {
+        subCategory: '공동구매',
+        purpose: '시험기간 간식 공동구매',
+        place: '중앙도서관 라운지',
+        estimatedAmount: '총 24,000원 예상'
+      },
+      timeline: [
+        { label: '모집 시작', state: 'done' },
+        { label: '공동 구매', state: 'current' },
+        { label: '정산 완료', state: 'pending' }
+      ]
+    }
+  ],
+  chats: {
+    'pot-delivery-1': {
+      potId: 'pot-delivery-1',
+      notice: '비전타워 1층 로비에서 만나고, 정산은 주문 직후 안전결제로 요청할게요.',
+      messages: [
+        { from: 'host-1', name: '서휘', text: '마라탕은 2단계로 주문할게요.', type: 'host' },
+        { from: 'mate-1', name: '지민', text: '좋아요. 꿔바로우도 같이 먹고 싶어요.', type: 'member' }
+      ]
+    },
+    'pot-taxi-1': {
+      potId: 'pot-taxi-1',
+      notice: '정문 앞 택시 승강장에서 만나면 출발 전에 정산 요청 보낼게요.',
+      messages: [
+        { from: 'me', name: '민아', text: '21시 20분에 정문 앞에서 출발할게요.', type: 'mine', mine: true },
+        { from: 'mate-3', name: '도윤', text: '도착하면 채팅 남길게요.', type: 'member' }
+      ]
+    },
+    'pot-sub-1': {
+      potId: 'pot-sub-1',
+      notice: '정산 완료되면 바로 계정 초대 링크 보낼게요.',
+      messages: [
+        { from: 'system', text: '정산 요청이 도착했어요. 1인당 4,250원을 결제해 주세요.', type: 'system', system: true },
+        { from: 'host-3', name: '유진', text: '정산 끝나면 프로필 공유해드릴게요.', type: 'host' }
+      ]
+    }
+  },
+  settlements: [
+    { id: 'set-1', potId: 'pot-sub-1', title: '넷플릭스 프리미엄 4인팟', amount: 4250, status: '정산 요청됨', date: '오늘' }
+  ],
+  payments: [
+    { id: 'charge-1', title: '포인트 충전', category: '포인트', amount: 10000, status: '충전 완료', date: '오늘' },
+    { id: 'pay-1', potId: 'pot-sub-1', title: '넷플릭스 프리미엄 4인팟', category: '구독팟', amount: 4250, status: '정산 요청됨', date: '오늘' },
+    { id: 'pay-2', potId: 'old-delivery-1', title: '치킨 배달팟', category: '배달팟', amount: 9800, status: '정산 완료', date: '어제' }
+  ]
+};
+
+
+/* js/potmate-core.js */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    root.PotMateCore = factory();
+  }
+})(typeof self !== 'undefined' ? self : this, function () {
+  const CATEGORY_FIELDS = {
+    '배달팟': ['subCategory', 'menuHighlight', 'orderTime', 'pickupPoint'],
+    '택시팟': ['subCategory', 'departurePoint', 'destination', 'departureTime', 'estimatedFare'],
+    '구독팟': ['subCategory', 'serviceName', 'period', 'seatType'],
+    '기타팟': ['subCategory', 'purpose', 'place', 'estimatedAmount']
+  };
+
+  const CATEGORY_DEFAULTS = {
+    '배달팟': { joinRadiusMeters: 300, subCategory: '치킨' },
+    '택시팟': { joinRadiusMeters: 500, subCategory: '귀가' },
+    '구독팟': { joinRadiusMeters: 500, subCategory: 'OTT' },
+    '기타팟': { joinRadiusMeters: 500, subCategory: '공동구매' }
+  };
+
+  const SETTLEMENT_STAGES = ['정산 대기', '정산 요청됨', '정산 완료'];
+
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function formatWon(amount) {
+    return `${Number(amount || 0).toLocaleString('ko-KR')}원`;
+  }
+
+  function remainingSeats(pot) {
+    return Math.max(Number(pot.maxMembers || 0) - Number(pot.currentMembers || 0), 0);
+  }
+
+  function normalizeRecruitStatus(pot) {
+    if (Number(pot.currentMembers || 0) >= Number(pot.maxMembers || 0)) return '모집완료';
+    if (remainingSeats(pot) <= 1) return '마감임박';
+    return pot.recruitStatus || '모집중';
+  }
+
+  function searchTextFor(pot) {
+    return [
+      pot.title,
+      pot.category,
+      pot.subCategory,
+      pot.locationSummary,
+      pot.location,
+      pot.description,
+      pot.urgencyLabel,
+      ...(pot.trustBadges || []),
+      ...Object.values(pot.detail || {})
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function filterPots(pots, filters) {
+    const category = filters.category || '전체';
+    const query = (filters.query || '').trim().toLowerCase();
+    const radius = Number(filters.radius || 0);
+
+    return pots.filter((pot) => {
+      const categoryMatches = category === '전체' || pot.category === category;
+      const queryMatches = !query || searchTextFor(pot).includes(query);
+      const radiusMatches = !radius || Number(pot.distanceMeters || 0) <= radius;
+      return categoryMatches && queryMatches && radiusMatches;
+    });
+  }
+
+  function sortPots(pots, sortMode) {
+    const items = clone(pots);
+    if (sortMode === 'urgent') {
+      return items.sort((left, right) => {
+        const leftRank = Number(left.urgencyRank || 99);
+        const rightRank = Number(right.urgencyRank || 99);
+        if (leftRank !== rightRank) return leftRank - rightRank;
+        return Number(left.distanceMeters || 0) - Number(right.distanceMeters || 0);
+      });
+    }
+
+    return items.sort((left, right) => {
+      const distanceGap = Number(left.distanceMeters || 0) - Number(right.distanceMeters || 0);
+      if (distanceGap !== 0) return distanceGap;
+      return Number(left.urgencyRank || 99) - Number(right.urgencyRank || 99);
+    });
+  }
+
+  function buildCategoryStats(pots) {
+    return ['배달팟', '택시팟', '구독팟', '기타팟'].map((category) => {
+      const items = pots.filter((pot) => pot.category === category && normalizeRecruitStatus(pot) !== '모집완료');
+      return {
+        category,
+        count: items.length,
+        closestDistance: items.length ? Math.min(...items.map((pot) => Number(pot.distanceMeters || 0))) : null
+      };
+    });
+  }
+
+  function buildHomeSections(pots, filters) {
+    const visible = sortPots(filterPots(pots, filters), filters.sortMode || 'distance');
+    const recommended = visible.filter((pot) => normalizeRecruitStatus(pot) !== '모집완료').slice(0, 3);
+    const closingSoon = sortPots(
+      visible.filter((pot) => normalizeRecruitStatus(pot) === '마감임박' || Number(pot.urgencyRank || 99) <= 2),
+      'urgent'
+    ).slice(0, 3);
+    const categorySpotlights = ['배달팟', '택시팟', '구독팟', '기타팟']
+      .map((category) => sortPots(pots.filter((pot) => pot.category === category), filters.sortMode || 'distance')[0])
+      .filter(Boolean);
+
+    return {
+      visible,
+      recommended,
+      closingSoon,
+      categorySpotlights,
+      categoryStats: buildCategoryStats(filterPots(pots, { category: '전체', query: '', radius: filters.radius || 0 }))
+    };
+  }
+
+  function buildTrustBadges(category, input) {
+    const base = ['안전정산'];
+    if (category === '배달팟' || category === '택시팟') base.unshift('위치인증');
+    base.splice(1, 0, '방장인증');
+
+    if (Array.isArray(input.trustBadges) && input.trustBadges.length) {
+      return Array.from(new Set([...base, ...input.trustBadges]));
+    }
+
+    return base;
+  }
+
+  function buildDetail(category, input) {
+    const detail = {};
+    (CATEGORY_FIELDS[category] || []).forEach((field) => {
+      if (input[field]) detail[field] = input[field];
+    });
+    return detail;
+  }
+
+  function buildTimeline(category) {
+    if (category === '배달팟') {
+      return [
+        { label: '모집 시작', state: 'done' },
+        { label: '주문 예정', state: 'current' },
+        { label: '정산 완료', state: 'pending' }
+      ];
+    }
+    if (category === '택시팟') {
+      return [
+        { label: '모집 시작', state: 'done' },
+        { label: '출발 대기', state: 'current' },
+        { label: '정산 완료', state: 'pending' }
+      ];
+    }
+    if (category === '구독팟') {
+      return [
+        { label: '자리 모집', state: 'done' },
+        { label: '정산 요청', state: 'current' },
+        { label: '공유 시작', state: 'pending' }
+      ];
+    }
+
+    return [
+      { label: '모집 시작', state: 'done' },
+      { label: '공동 진행', state: 'current' },
+      { label: '정산 완료', state: 'pending' }
+    ];
+  }
+
+  function createPot(input, idFactory) {
+    const category = input.category || '기타팟';
+    const defaults = CATEGORY_DEFAULTS[category] || CATEGORY_DEFAULTS['기타팟'];
+    const host = input.host || { id: 'me', name: '민아', avatar: '민', isMe: true };
+
+    const pot = {
+      id: idFactory ? idFactory() : `pot-${Date.now()}`,
+      category,
+      subCategory: input.subCategory || defaults.subCategory,
+      title: input.title || '새 팟',
+      description: input.description || '근처 메이트를 빠르게 모아볼까요?',
+      host,
+      currentMembers: 1,
+      maxMembers: Number(input.maxMembers || 4),
+      participants: [
+        { id: host.id, name: host.name, avatar: host.avatar || host.name[0], paid: true, isMe: Boolean(host.isMe) }
+      ],
+      waitingParticipants: [],
+      perPersonAmount: Number(input.perPersonAmount || 0),
+      distanceMeters: Number(input.distanceMeters || 120),
+      joinRadiusMeters: Number(input.joinRadiusMeters || defaults.joinRadiusMeters),
+      locationSummary: input.locationSummary || input.location || input.pickupPoint || input.departurePoint || input.place || '가천대 정문 근처',
+      deadlineLabel: input.deadlineLabel || input.deadline || '오늘 22:00',
+      recruitStatus: '모집중',
+      settlementStage: '정산 대기',
+      urgencyLabel: input.urgencyLabel || '모집 새로 시작',
+      urgencyRank: Number(input.urgencyRank || 3),
+      trustBadges: buildTrustBadges(category, input),
+      detail: buildDetail(category, input),
+      timeline: Array.isArray(input.timeline) && input.timeline.length ? clone(input.timeline) : buildTimeline(category)
+    };
+
+    pot.recruitStatus = normalizeRecruitStatus(pot);
+    return pot;
+  }
+
+  function canJoinPot(pot, pointBalance, userDistance) {
+    if (normalizeRecruitStatus(pot) === '모집완료') {
+      return { ok: false, reason: '모집 인원이 모두 찼어요.' };
+    }
+    if (pot.recruitStatus && !['모집중', '마감임박'].includes(pot.recruitStatus) && normalizeRecruitStatus(pot) !== '마감임박') {
+      return { ok: false, reason: '지금은 참여할 수 없는 모집 상태예요.' };
+    }
+    if (Number(userDistance || pot.distanceMeters || 0) > Number(pot.joinRadiusMeters || 0)) {
+      return { ok: false, reason: '참여 가능 거리 밖에 있어요. 위치 인증 후 다시 시도해 주세요.' };
+    }
+    if (Number(pointBalance || 0) < Number(pot.perPersonAmount || 0)) {
+      return { ok: false, reason: '포인트가 부족해요. 충전 후 참여해 주세요.' };
+    }
+    return { ok: true };
+  }
+
+  function ensureChat(chats, pot) {
+    if (chats[pot.id]) return chats[pot.id];
+    return {
+      potId: pot.id,
+      notice: `${pot.category} 진행 전 장소와 정산 금액을 다시 한 번 확인해 주세요.`,
+      messages: [
+        {
+          from: 'system',
+          type: 'system',
+          text: `${pot.title} 채팅방이 열렸어요. 모집과 정산은 이 방에서 이어집니다.`
+        }
+      ]
+    };
+  }
+
+  function sendChatMessage(state, potId, message) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+    next.chats = next.chats || {};
+    next.chats[potId] = ensureChat(next.chats, pot);
+    next.chats[potId].messages.push(message);
+    return next;
+  }
+
+  function updatePotStage(pot, stage) {
+    pot.settlementStage = stage;
+    pot.timeline = buildSettlementStages(stage).map((item) => ({ label: item.label, state: item.state }));
+  }
+
+  function joinPot(state, potId) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    pot.participants = pot.participants || [];
+    if (!pot.participants.some((member) => member.id === next.user.id)) {
+      pot.participants.push({
+        id: next.user.id,
+        name: next.user.name,
+        avatar: next.user.avatar || next.user.name[0],
+        paid: false,
+        isMe: true
+      });
+      pot.currentMembers += 1;
+    }
+
+    pot.recruitStatus = normalizeRecruitStatus(pot);
+    next.activeChatId = potId;
+    next.chats = next.chats || {};
+    next.chats[potId] = ensureChat(next.chats, pot);
+    next.chats[potId].messages.push({
+      from: 'system',
+      type: 'system',
+      text: `${next.user.name}님이 참여했어요. 모집과 정산 흐름이 채팅방에 연결됩니다.`
+    });
+
+    next.payments = next.payments || [];
+    next.payments.unshift({
+      id: `pay-${Date.now()}`,
+      potId,
+      title: pot.title,
+      category: pot.category,
+      amount: Number(pot.perPersonAmount || 0),
+      status: '참여중',
+      date: '방금'
+    });
+
+    return next;
+  }
+
+  function upsertPayment(next, payment) {
+    const existingIndex = (next.payments || []).findIndex((item) => item.potId === payment.potId && item.category === payment.category);
+    if (existingIndex >= 0) {
+      next.payments[existingIndex] = { ...next.payments[existingIndex], ...payment };
+      return;
+    }
+    next.payments.unshift(payment);
+  }
+
+  function requestSettlement(state, potId, totalAmount) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    const participants = pot.participants && pot.participants.length ? pot.participants : [];
+    const perPersonAmount = Math.ceil(Number(totalAmount || 0) / Math.max(participants.length, 1));
+
+    pot.perPersonAmount = perPersonAmount;
+    pot.participants = participants.map((member) => ({
+      ...member,
+      paid: member.id === pot.host.id
+    }));
+    updatePotStage(pot, '정산 요청됨');
+
+    next.settlements = next.settlements || [];
+    next.settlements.unshift({
+      id: `settlement-${Date.now()}`,
+      potId,
+      title: pot.title,
+      amount: perPersonAmount,
+      totalAmount: Number(totalAmount || 0),
+      status: '정산 요청됨',
+      date: '방금'
+    });
+
+    next.payments = next.payments || [];
+    if (pot.participants.some((member) => member.id === next.user.id && !member.paid)) {
+      upsertPayment(next, {
+        id: `payment-${Date.now()}`,
+        potId,
+        title: pot.title,
+        category: pot.category,
+        amount: perPersonAmount,
+        status: '정산 요청됨',
+        date: '방금'
+      });
+    }
+
+    next.chats = next.chats || {};
+    next.chats[potId] = ensureChat(next.chats, pot);
+    next.chats[potId].messages.push({
+      from: 'system',
+      type: 'system',
+      text: `정산 요청이 도착했어요. 1인당 ${formatWon(perPersonAmount)}씩 결제해 주세요.`
+    });
+
+    return next;
+  }
+
+  function sendReminder(name) {
+    return `${name}님에게 리마인드 알림을 보냈어요. 아직 정산하지 않은 메이트가 있어요.`;
+  }
+
+  function markParticipantPaid(state, potId, participantId, amount) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    let deducted = false;
+    pot.participants = (pot.participants || []).map((member) => {
+      if (member.id !== participantId) return member;
+      deducted = !member.paid;
+      return { ...member, paid: true };
+    });
+
+    const totalAmount = Number(amount || pot.perPersonAmount || 0);
+    if (participantId === next.user.id && deducted) {
+      next.pointBalance = Math.max(Number(next.pointBalance || 0) - totalAmount, 0);
+    }
+
+    const allPaid = pot.participants.length > 0 && pot.participants.every((member) => member.paid);
+    updatePotStage(pot, allPaid ? '정산 완료' : '정산 요청됨');
+
+    next.payments = next.payments || [];
+    upsertPayment(next, {
+      id: `paid-${Date.now()}`,
+      potId,
+      title: pot.title,
+      category: pot.category,
+      amount: totalAmount,
+      status: allPaid || participantId === next.user.id ? '정산 완료' : '정산 요청됨',
+      date: '방금'
+    });
+
+    next.settlements = (next.settlements || []).map((item) => (
+      item.potId === potId
+        ? { ...item, status: allPaid ? '정산 완료' : '정산 요청됨' }
+        : item
+    ));
+
+    next.chats = next.chats || {};
+    next.chats[potId] = ensureChat(next.chats, pot);
+    next.chats[potId].messages.push({
+      from: 'system',
+      type: 'system',
+      text: allPaid
+        ? '모든 메이트의 정산이 완료됐어요. 팟을 안전하게 마무리합니다.'
+        : '정산 완료가 반영됐어요. 남은 메이트의 결제를 기다리고 있어요.'
+    });
+
+    return next;
+  }
+
+  function chargePoints(state, amount) {
+    const next = clone(state);
+    next.pointBalance = Number(next.pointBalance || 0) + Number(amount || 0);
+    next.payments = next.payments || [];
+    next.payments.unshift({
+      id: `charge-${Date.now()}`,
+      title: '포인트 충전',
+      category: '포인트',
+      amount: Number(amount || 0),
+      status: '충전 완료',
+      date: '방금'
+    });
+    return next;
+  }
+
+  function getPaymentHistory(state) {
+    return clone(state.payments || []);
+  }
+
+  function buildWalletSections(state) {
+    const payments = clone(state.payments || []);
+    return {
+      pending: payments.filter((item) => item.status === '정산 요청됨' || item.status === '참여중'),
+      completed: payments.filter((item) => item.status === '정산 완료' || item.status === '충전 완료'),
+      recent: payments
+    };
+  }
+
+  function buildSettlementStages(currentStage) {
+    const currentIndex = Math.max(SETTLEMENT_STAGES.indexOf(currentStage), 0);
+    return SETTLEMENT_STAGES.map((label, index) => ({
+      label,
+      state: index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'pending'
+    }));
+  }
+
+  function updateRecruitmentStatus(state, potId, recruitStatus) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+    pot.recruitStatus = recruitStatus;
+    if (recruitStatus === '모집완료' && pot.currentMembers < pot.maxMembers) {
+      pot.currentMembers = pot.maxMembers;
+    }
+    return next;
+  }
+
+  return {
+    formatWon,
+    filterPots,
+    sortPots,
+    buildHomeSections,
+    buildCategoryStats,
+    createPot,
+    canJoinPot,
+    joinPot,
+    requestSettlement,
+    sendReminder,
+    chargePoints,
+    markParticipantPaid,
+    getPaymentHistory,
+    buildWalletSections,
+    buildSettlementStages,
+    sendChatMessage,
+    updateRecruitmentStatus
+  };
+});
+
+
+/* js/app.js */
+const core = window.PotMateCore;
+const categories = ['전체', '배달팟', '택시팟', '구독팟', '기타팟'];
+const createCategories = categories.slice(1);
+
+let state = {
+  ...JSON.parse(JSON.stringify(window.PotMateSeed)),
+  route: 'onboarding',
+  selectedCategory: '전체',
+  query: '',
+  selectedPotId: 'pot-taxi-1',
+  radiusFilter: 500,
+  sortMode: 'distance',
+  settlementTotal: 26000,
+  createCategory: '배달팟'
+};
+
+const app = document.querySelector('#app');
+const toast = document.querySelector('#toast');
+
+function won(amount) {
+  return core.formatWon(amount);
+}
+
+function potById(id) {
+  return state.pots.find((pot) => pot.id === id);
+}
+
+function isJoined(pot) {
+  return Boolean((pot.participants || []).some((member) => member.id === state.user.id));
+}
+
+function currentMember(pot) {
+  return (pot.participants || []).find((member) => member.id === state.user.id);
+}
+
+function setRoute(route, selectedPotId) {
+  state.route = route;
+  if (selectedPotId) {
+    state.selectedPotId = selectedPotId;
+  }
+  render();
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add('is-visible');
+  window.clearTimeout(showToast.timer);
+  showToast.timer = window.setTimeout(() => toast.classList.remove('is-visible'), 2200);
+}
+
+function nav(active) {
+  return `
+    <nav class="bottom-nav">
+      ${[
+        ['home', '홈'],
+        ['create', '팟 만들기'],
+        ['chat', '채팅'],
+        ['my', 'My 결제']
+      ].map(([route, label]) => `
+        <button type="button" class="${active === route ? 'is-active' : ''}" data-route="${route}">${label}</button>
+      `).join('')}
+    </nav>
+  `;
+}
+
+function backButton(target = 'home') {
+  return `<button class="back-button" type="button" data-route="${target}" aria-label="뒤로">‹</button>`;
+}
+
+function trustBadges(pot) {
+  return `
+    <div class="trust-row">
+      ${(pot.trustBadges || []).map((badge) => `<span class="trust-badge">${badge}</span>`).join('')}
+    </div>
+  `;
+}
+
+function participantStrip(pot) {
+  const visible = (pot.participants || []).slice(0, 4);
+  return `
+    <div class="participant-strip">
+      ${visible.map((member) => `<span class="avatar">${member.avatar || member.name[0]}</span>`).join('')}
+      <span class="participant-count">${pot.currentMembers}/${pot.maxMembers}명</span>
+    </div>
+  `;
+}
+
+function stageTrack(stage) {
+  return `
+    <div class="settlement-stage">
+      <div class="stage-track">
+        ${core.buildSettlementStages(stage).map((item) => `
+          <div class="stage-step is-${item.state}">
+            <strong>${item.label}</strong>
+            <span>${item.state === 'done' ? '완료' : item.state === 'current' ? '진행중' : '대기'}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function detailRows(pot) {
+  const labelMap = {
+    subCategory: '세부 카테고리',
+    menuHighlight: '대표 메뉴',
+    orderTime: '주문 예정 시간',
+    pickupPoint: '수령 장소',
+    departurePoint: '출발 지점',
+    destination: '도착 지점',
+    departureTime: '출발 시간',
+    estimatedFare: '예상 택시비',
+    serviceName: '서비스명',
+    period: '이용 기간',
+    seatType: '공유 방식',
+    purpose: '모임 목적',
+    place: '만나는 장소',
+    estimatedAmount: '예상 총액'
+  };
+
+  return Object.entries(pot.detail || {}).map(([key, value]) => `
+    <div class="info-row">
+      <span>${labelMap[key] || key}</span>
+      <strong>${value}</strong>
+    </div>
+  `).join('');
+}
+
+function timelineCard(pot) {
+  const timeline = Array.isArray(pot.timeline) ? pot.timeline : [];
+  return `
+    <article class="glass-card timeline-card">
+      <div class="section-heading">
+        <h2>진행 타임라인</h2>
+      </div>
+      <div class="timeline-list">
+        ${timeline.map((item) => `
+          <div class="timeline-item is-${item.state}">
+            <span class="timeline-dot"></span>
+            <div>
+              <strong>${item.label}</strong>
+              <p>${item.state === 'done' ? '이 단계는 완료됐어요.' : item.state === 'current' ? '지금 진행 중인 단계예요.' : '다음 단계에서 이어져요.'}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </article>
+  `;
+}
+
+function potCard(pot, options = {}) {
+  const compact = Boolean(options.compact);
+  const seatsLeft = Math.max(pot.maxMembers - pot.currentMembers, 0);
+  const joined = isJoined(pot);
+
+  return `
+    <article class="pot-card ${compact ? 'pot-card--compact' : ''}" data-pot-id="${pot.id}">
+      <div class="pot-card__head">
+        <span class="category-badge">${pot.category}</span>
+        <span class="status-pill">${pot.urgencyLabel || pot.recruitStatus}</span>
+      </div>
+      <h2>${pot.title}</h2>
+      <p class="card-copy">${pot.description}</p>
+      ${trustBadges(pot)}
+      <div class="meta-grid">
+        <div class="meta-chip">거리<strong>${pot.distanceMeters}m</strong></div>
+        <div class="meta-chip">남은 자리<strong>${seatsLeft}명</strong></div>
+        <div class="meta-chip">예상 금액<strong>${won(pot.perPersonAmount)}</strong></div>
+        <div class="meta-chip">마감/상태<strong>${pot.deadlineLabel}</strong></div>
+      </div>
+      <div class="pot-card__footer">
+        <span class="inline-note">${pot.subCategory}</span>
+        <button class="gradient-button ${compact ? '' : 'full-button'}" type="button" data-join-id="${pot.id}">
+          ${joined ? '채팅으로 이동' : '참여하기'}
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+function historyCard(payment) {
+  return `
+    <article class="history-card">
+      <div>
+        <strong>${payment.title}</strong>
+        <span>${payment.category} · ${payment.date}</span>
+      </div>
+      <div class="history-card__meta">
+        <strong>${won(payment.amount)}</strong>
+        <span>${payment.status}</span>
+      </div>
+    </article>
+  `;
+}
+
+function categoryFields(category) {
+  if (category === '배달팟') {
+    return `
+      <label class="form-field">
+        <span>세부 카테고리</span>
+        <select name="subCategory">
+          <option>치킨</option>
+          <option selected>마라탕</option>
+          <option>카페</option>
+          <option>디저트</option>
+          <option>패스트푸드</option>
+        </select>
+      </label>
+      <label class="form-field"><span>대표 메뉴</span><input name="menuHighlight" placeholder="예: 마라탕 + 꿔바로우"></label>
+      <label class="form-field"><span>주문 예정 시간</span><input name="orderTime" placeholder="예: 오늘 18:40"></label>
+      <label class="form-field"><span>수령 장소</span><input name="pickupPoint" placeholder="예: 비전타워 1층"></label>
+    `;
+  }
+
+  if (category === '택시팟') {
+    return `
+      <label class="form-field"><span>세부 카테고리</span><input name="subCategory" value="심야귀가"></label>
+      <label class="form-field"><span>출발 지점</span><input name="departurePoint" placeholder="예: 가천대 정문 앞"></label>
+      <label class="form-field"><span>도착 지점</span><input name="destination" placeholder="예: 강남역 11번 출구"></label>
+      <label class="form-field"><span>출발 시간</span><input name="departureTime" placeholder="예: 오늘 21:20"></label>
+      <label class="form-field"><span>예상 택시비</span><input name="estimatedFare" placeholder="예: 총 26,000원 예상"></label>
+    `;
+  }
+
+  if (category === '구독팟') {
+    return `
+      <label class="form-field"><span>세부 카테고리</span><input name="subCategory" value="OTT"></label>
+      <label class="form-field"><span>서비스명</span><input name="serviceName" placeholder="예: 넷플릭스 프리미엄"></label>
+      <label class="form-field"><span>이용 기간</span><input name="period" placeholder="예: 2026.05.01 - 2026.05.31"></label>
+      <label class="form-field"><span>공유 방식</span><input name="seatType" placeholder="예: 4인 공유"></label>
+    `;
+  }
+
+  return `
+    <label class="form-field"><span>세부 카테고리</span><input name="subCategory" value="공동구매"></label>
+    <label class="form-field"><span>모임 목적</span><input name="purpose" placeholder="예: 시험기간 간식 공동구매"></label>
+    <label class="form-field"><span>만나는 장소</span><input name="place" placeholder="예: 중앙도서관 라운지"></label>
+    <label class="form-field"><span>예상 총액</span><input name="estimatedAmount" placeholder="예: 총 24,000원 예상"></label>
+  `;
+}
+
+function renderOnboarding() {
+  app.innerHTML = `
+    <section class="onboarding-screen screen-enter">
+      <div>
+        <div class="brand-mark"><span class="brand-icon">P</span>팟메이트(PotMate)</div>
+        <div class="onboarding-hero">
+          <h1>사람 모집부터 정산까지, 캠퍼스 N빵을 한 번에</h1>
+          <p>배달팟, 택시팟, 구독팟, 기타팟까지 근처 메이트를 찾고 채팅과 안전 정산으로 자연스럽게 이어지게 만들어요.</p>
+        </div>
+        <div class="floating-preview">
+          <div class="preview-card">
+            <strong>현재 위치 기준 추천</strong>
+            <span>가천대 근처 180m · 마라탕 배달팟 · 1명 남음</span>
+          </div>
+          <div class="preview-card">
+            <strong>안전 정산 흐름</strong>
+            <span>참여 → 채팅 → 정산 요청 → 완료 상태까지 같은 앱에서 확인</span>
+          </div>
+        </div>
+      </div>
+      <button class="gradient-button full-button" type="button" data-route="home">팟메이트 시작하기</button>
+    </section>
+  `;
+}
+
+function renderHome() {
+  const sections = core.buildHomeSections(state.pots, {
+    category: state.selectedCategory,
+    query: state.query,
+    radius: state.radiusFilter,
+    sortMode: state.sortMode
+  });
+
+  const promo = state.promoBanners[0];
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <header class="topbar topbar--hub">
+        <span class="location-pill">현재 위치 · ${state.user.locationLabel}</span>
+        <span class="status-pill">${won(state.pointBalance)}</span>
+      </header>
+
+      <section class="hub-highlight">
+        <div class="hub-highlight__label">PotMate Hub</div>
+        <h1>근처에서 바로 합류할 수 있는 N빵 팟</h1>
+        <p>사람 모집, 채팅, 정산이 한 흐름으로 이어지도록 가장 참여하기 좋은 팟을 먼저 보여줘요.</p>
+        <div class="hub-summary-grid">
+          ${sections.categoryStats.map((item) => `
+            <div class="hub-stat">
+              <span>${item.category}</span>
+              <strong>${item.count}개</strong>
+              <em>${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</em>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <label class="search-box">
+        <input id="search-input" type="search" value="${state.query}" placeholder="마라탕, 강남역, 넷플릭스 검색">
+      </label>
+
+      <div class="filter-row">
+        <label class="filter-field">
+          <span>반경</span>
+          <select id="radius-filter">
+            ${[300, 500, 1000].map((radius) => `<option value="${radius}" ${radius === state.radiusFilter ? 'selected' : ''}>${radius}m</option>`).join('')}
+          </select>
+        </label>
+        <label class="filter-field">
+          <span>정렬</span>
+          <select id="sort-filter">
+            <option value="distance" ${state.sortMode === 'distance' ? 'selected' : ''}>거리순</option>
+            <option value="urgent" ${state.sortMode === 'urgent' ? 'selected' : ''}>마감임박순</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="category-tabs">
+        ${categories.map((category) => `
+          <button type="button" class="${category === state.selectedCategory ? 'is-active' : ''}" data-category="${category}">${category}</button>
+        `).join('')}
+      </div>
+
+      <section class="home-section">
+        <div class="section-heading">
+          <h2>지금 참여하기 좋은 팟</h2>
+          <span>${sections.visible.length}개</span>
+        </div>
+        <div class="pot-list pot-list--home">
+          ${sections.recommended.length
+            ? sections.recommended.map((pot) => potCard(pot)).join('')
+            : '<div class="empty-state">조건에 맞는 팟이 아직 없어요.</div>'}
+        </div>
+      </section>
+
+      <section class="home-section closing-soon-section">
+        <div class="section-heading">
+          <h2>마감 임박</h2>
+          <span>놓치기 전에 확인</span>
+        </div>
+        <div class="spotlight-grid">
+          ${sections.closingSoon.length
+            ? sections.closingSoon.map((pot) => potCard(pot, { compact: true })).join('')
+            : '<div class="empty-state">급한 모집은 아직 없어요.</div>'}
+        </div>
+      </section>
+
+      <section class="home-section category-spotlight">
+        <div class="section-heading">
+          <h2>카테고리별 대표 팟</h2>
+          <span>균형 있게 둘러보기</span>
+        </div>
+        <div class="spotlight-grid">
+          ${sections.categorySpotlights.map((pot) => potCard(pot, { compact: true })).join('')}
+        </div>
+      </section>
+
+      <section class="home-section">
+        <div class="coupon-card">
+          <span>${promo.label}</span>
+          <strong>${promo.title}</strong>
+          <p>${promo.description}</p>
+        </div>
+      </section>
+    </section>
+    ${nav('home')}
+  `;
+}
+
+function renderDetail() {
+  const pot = potById(state.selectedPotId);
+  if (!pot) {
+    setRoute('home');
+    return;
+  }
+
+  const alreadyJoined = isJoined(pot);
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <header class="topbar">
+        ${backButton('home')}
+        <span class="status-pill">${pot.category}</span>
+      </header>
+
+      <article class="glass-card detail-hero">
+        <div class="pot-card__head">
+          <span class="category-badge">${pot.category} · ${pot.subCategory}</span>
+          <span class="status-pill">${pot.recruitStatus}</span>
+        </div>
+        <h1>${pot.title}</h1>
+        <p>${pot.description}</p>
+        ${trustBadges(pot)}
+        ${participantStrip(pot)}
+      </article>
+
+      <article class="glass-card detail-grid">
+        <div class="info-row"><span>방장</span><strong>${pot.host.name}</strong></div>
+        <div class="info-row"><span>위치</span><strong>${pot.locationSummary}</strong></div>
+        <div class="info-row"><span>참여 가능 반경</span><strong>${pot.joinRadiusMeters}m 이내</strong></div>
+        <div class="info-row"><span>현재 거리</span><strong>${pot.distanceMeters}m</strong></div>
+        <div class="info-row"><span>모집 인원</span><strong>${pot.currentMembers}/${pot.maxMembers}명</strong></div>
+        <div class="info-row"><span>예상 1인 금액</span><strong>${won(pot.perPersonAmount)}</strong></div>
+        <div class="info-row"><span>마감 상태</span><strong>${pot.deadlineLabel}</strong></div>
+        ${detailRows(pot)}
+      </article>
+
+      ${timelineCard(pot)}
+
+      <div class="fixed-action">
+        <button class="gradient-button full-button" type="button" data-route="${alreadyJoined ? 'chat' : 'confirm'}" data-select-pot="${pot.id}">
+          ${alreadyJoined ? '채팅방으로 이동' : '참여 조건 확인하기'}
+        </button>
+      </div>
+    </section>
+    ${nav('home')}
+  `;
+}
+
+function renderConfirm() {
+  const pot = potById(state.selectedPotId);
+  if (!pot) {
+    setRoute('home');
+    return;
+  }
+
+  const result = core.canJoinPot(pot, state.pointBalance, pot.distanceMeters);
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <header class="topbar">
+        ${backButton('detail')}
+        <span class="status-pill">참여 확인</span>
+      </header>
+
+      <article class="glass-card join-summary">
+        <span class="category-badge">${pot.category}</span>
+        <h1>${pot.title}</h1>
+        <span class="price-xl">${won(pot.perPersonAmount)}</span>
+        <div class="info-row"><span>현재 포인트</span><strong>${won(state.pointBalance)}</strong></div>
+        <div class="info-row"><span>위치 조건</span><strong>${pot.joinRadiusMeters}m 이내</strong></div>
+      </article>
+
+      <p class="notice">참여 후에는 채팅방으로 이동하고, 정산이 시작되면 안전 결제로 이어집니다.</p>
+
+      ${result.ok ? `
+        <button class="gradient-button full-button" type="button" data-confirm-join="${pot.id}">참여 확정하고 채팅방 들어가기</button>
+      ` : `
+        <p class="notice notice--warning">${result.reason}</p>
+        <div class="wallet-quick-charge">
+          ${state.chargeOptions.map((amount) => `
+            <button class="secondary-button quick-charge-button" type="button" data-charge="${amount}">${amount.toLocaleString('ko-KR')}P</button>
+          `).join('')}
+        </div>
+        <button class="gradient-button full-button" type="button" disabled>참여할 수 없어요</button>
+      `}
+    </section>
+    ${nav('home')}
+  `;
+}
+
+function memberForMessage(pot, message) {
+  if (message.from === state.user.id || message.mine) {
+    return { id: state.user.id, name: state.user.name, avatar: state.user.avatar, isMe: true };
+  }
+
+  return (pot.participants || []).find((member) => member.id === message.from)
+    || (message.from === pot.host.id ? pot.host : null)
+    || { id: message.from, name: message.name || '메이트', avatar: (message.name || '메')[0] };
+}
+
+function renderMessage(pot, message) {
+  if (message.system || message.type === 'system') {
+    return `<div class="message system">${message.text}</div>`;
+  }
+
+  const isOwn = message.mine || message.from === state.user.id;
+  const member = memberForMessage(pot, message);
+  const isHostMessage = message.from === pot.host.id || message.type === 'host';
+
+  return `
+    <div class="message-row ${isOwn ? 'is-own' : ''}">
+      ${isOwn ? '' : `<div class="message-profile">${member.avatar || member.name[0]}</div>`}
+      <div class="message-body">
+        ${isOwn ? '' : `
+          <div class="message-name">
+            <span>${member.name}</span>
+            ${isHostMessage ? '<span class="host-badge">방장</span>' : ''}
+          </div>
+        `}
+        <div class="message ${isOwn ? 'mine' : ''}">${message.text}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderChat() {
+  const pot = potById(state.selectedPotId || state.activeChatId) || state.pots[0];
+  state.selectedPotId = pot.id;
+  const chat = state.chats[pot.id] || { messages: [], notice: '' };
+  const isHost = pot.host.id === state.user.id;
+  const myMembership = currentMember(pot);
+  const shouldPay = Boolean(myMembership && !myMembership.paid && pot.settlementStage === '정산 요청됨');
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <header class="chat-header">
+        <div class="chat-header__title">
+          <strong>${pot.title}</strong>
+          <span>${pot.currentMembers}/${pot.maxMembers}명 · ${pot.recruitStatus}</span>
+        </div>
+        <span class="status-pill">${pot.settlementStage}</span>
+      </header>
+
+      ${stageTrack(pot.settlementStage)}
+
+      ${isHost ? `
+        <div class="host-actions">
+          <button type="button" data-close-pot="${pot.id}">모집 마감</button>
+          <button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 요청</button>
+          <button type="button" data-manage="${pot.id}">대기 인원 확인</button>
+        </div>
+      ` : ''}
+
+      <div class="announcement">${chat.notice || '채팅에서 일정과 정산 안내를 함께 확인해 주세요.'}</div>
+
+      <section class="chat-list">
+        ${(chat.messages || []).map((message) => renderMessage(pot, message)).join('')}
+      </section>
+
+      <article class="glass-card">
+        <div class="info-row"><span>현재 정산 상태</span><strong>${pot.settlementStage}</strong></div>
+        <div class="info-row"><span>예상 결제 금액</span><strong>${won(pot.perPersonAmount)}</strong></div>
+        ${trustBadges(pot)}
+      </article>
+
+      ${shouldPay ? `
+        <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 ${won(pot.perPersonAmount)} 결제하기</button>
+      ` : `
+        <button class="secondary-button full-button" type="button" data-route="settlement" data-select-pot="${pot.id}">정산 상태 보기</button>
+      `}
+
+      <div class="chat-input">
+        <input id="message-input" placeholder="채팅 메시지를 입력하세요">
+        <button class="gradient-button" type="button" data-send-message="${pot.id}">보내기</button>
+      </div>
+    </section>
+    ${nav('chat')}
+  `;
+}
+
+function renderSettlement() {
+  const pot = potById(state.selectedPotId || state.activeChatId);
+  if (!pot) {
+    setRoute('home');
+    return;
+  }
+
+  const isHost = pot.host.id === state.user.id;
+  const participants = pot.participants || [];
+  const totalAmount = state.settlementTotal || pot.perPersonAmount * Math.max(participants.length, 1);
+  const myMembership = currentMember(pot);
+  const shouldPay = Boolean(myMembership && !myMembership.paid && pot.settlementStage === '정산 요청됨');
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <header class="topbar">
+        ${backButton('chat')}
+        <span class="status-pill">정산 상태</span>
+      </header>
+
+      <div class="page-title">
+        <h1>정산 진행 상태</h1>
+        <p>누가 결제했고, 누가 아직 대기 중인지 실시간처럼 한눈에 보여줘요.</p>
+      </div>
+
+      ${stageTrack(pot.settlementStage)}
+
+      <article class="glass-card">
+        ${isHost ? `
+          <label class="form-field">
+            <span>총 금액</span>
+            <input id="settlement-total" type="number" value="${totalAmount}">
+          </label>
+        ` : `
+          <div class="info-row"><span>총 금액</span><strong>${won(totalAmount)}</strong></div>
+        `}
+        <div class="info-row"><span>참여 인원</span><strong>${participants.length}명</strong></div>
+        <div class="info-row"><span>1인당 금액</span><strong>${won(Math.ceil(totalAmount / Math.max(participants.length, 1)))}</strong></div>
+      </article>
+
+      ${isHost && pot.settlementStage === '정산 대기' ? `
+        <button class="gradient-button full-button" type="button" data-request-settlement="${pot.id}">정산 요청 보내기</button>
+      ` : ''}
+
+      ${shouldPay ? `
+        <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 ${won(pot.perPersonAmount)} 결제하기</button>
+      ` : ''}
+
+      <section class="detail-stack">
+        ${participants.map((member) => `
+          <div class="settlement-row">
+            <div>
+              <strong>${member.name}</strong>
+              <span>${member.paid ? '정산 완료' : '정산 대기'}</span>
+            </div>
+            ${member.paid
+              ? '<span class="status-pill">완료</span>'
+              : isHost
+                ? `<button class="ghost-button" type="button" data-remind="${member.name}">리마인드</button>`
+                : '<span class="status-pill">대기</span>'}
+          </div>
+        `).join('')}
+      </section>
+    </section>
+    ${nav('chat')}
+  `;
+}
+
+function renderMy() {
+  const wallet = core.buildWalletSections(state);
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <div class="page-title">
+        <h1>My 결제</h1>
+        <p>포인트, 진행 중인 정산, 최근 결제 기록을 금융앱처럼 깔끔하게 보여줘요.</p>
+      </div>
+
+      <article class="glass-card wallet-card">
+        <span>보유 포인트</span>
+        <strong class="price-xl">${won(state.pointBalance)}</strong>
+        <p>안전 정산 대기 금액과 충전 내역을 함께 확인할 수 있어요.</p>
+      </article>
+
+      <div class="wallet-quick-charge">
+        ${state.chargeOptions.map((amount) => `
+          <button class="secondary-button quick-charge-button" type="button" data-charge="${amount}">
+            ${amount.toLocaleString('ko-KR')}P
+          </button>
+        `).join('')}
+      </div>
+
+      <section class="payment-stack">
+        <div class="section-heading">
+          <h2>진행 중인 정산</h2>
+        </div>
+        ${wallet.pending.length
+          ? wallet.pending.map(historyCard).join('')
+          : '<div class="empty-state">진행 중인 정산이 없어요.</div>'}
+
+        <div class="section-heading">
+          <h2>정산 완료 / 충전 내역</h2>
+        </div>
+        ${wallet.completed.length
+          ? wallet.completed.map(historyCard).join('')
+          : '<div class="empty-state">완료된 내역이 없어요.</div>'}
+
+        <div class="section-heading">
+          <h2>쿠폰</h2>
+        </div>
+        <div class="coupon-grid">
+          ${state.coupons.map((coupon) => `
+            <article class="coupon-card">
+              <span>${coupon.appliesTo}</span>
+              <strong>${coupon.title}</strong>
+              <p>${coupon.benefit}</p>
+            </article>
+          `).join('')}
+        </div>
+
+        <div class="section-heading">
+          <h2>최근 활동</h2>
+        </div>
+        ${wallet.recent.map(historyCard).join('')}
+      </section>
+    </section>
+    ${nav('my')}
+  `;
+}
+
+function renderCreate() {
+  const category = state.createCategory || '배달팟';
+
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      <div class="page-title">
+        <h1>팟 만들기</h1>
+        <p>입력 단계를 줄이고 필요한 정보만 보여줘서 빠르게 모집을 열 수 있게 해요.</p>
+      </div>
+
+      <form id="create-form" class="form-stack">
+        <label class="form-field">
+          <span>카테고리</span>
+          <select name="category" id="create-category">
+            ${createCategories.map((item) => `<option ${item === category ? 'selected' : ''}>${item}</option>`).join('')}
+          </select>
+        </label>
+        <label class="form-field"><span>팟 제목</span><input name="title" required placeholder="예: 마라탕 같이 시켜요"></label>
+        <label class="form-field"><span>모집 인원</span><input name="maxMembers" type="number" min="2" value="4"></label>
+        <label class="form-field"><span>예상 1인 금액</span><input name="perPersonAmount" type="number" value="8000"></label>
+        <label class="form-field"><span>위치 요약</span><input name="locationSummary" required placeholder="예: 가천대 정문 앞"></label>
+        <label class="form-field"><span>마감 상태 문구</span><input name="deadlineLabel" placeholder="예: 오늘 22:00 마감"></label>
+        ${categoryFields(category)}
+        <label class="form-field"><span>설명</span><textarea name="description" placeholder="메이트에게 보여줄 간단한 설명"></textarea></label>
+        <button class="gradient-button full-button" type="submit">새 팟 생성하기</button>
+      </form>
+    </section>
+    ${nav('create')}
+  `;
+}
+
+function render() {
+  switch (state.route) {
+    case 'home':
+      renderHome();
+      break;
+    case 'detail':
+      renderDetail();
+      break;
+    case 'confirm':
+      renderConfirm();
+      break;
+    case 'chat':
+      renderChat();
+      break;
+    case 'settlement':
+      renderSettlement();
+      break;
+    case 'my':
+      renderMy();
+      break;
+    case 'create':
+      renderCreate();
+      break;
+    default:
+      renderOnboarding();
+      break;
+  }
+}
+
+app.addEventListener('click', (event) => {
+  const routeButton = event.target.closest('[data-route]');
+  const joinButton = event.target.closest('[data-join-id]');
+  const confirmJoin = event.target.closest('[data-confirm-join]');
+  const chargeButton = event.target.closest('[data-charge]');
+  const requestSettlementButton = event.target.closest('[data-request-settlement]');
+  const remindButton = event.target.closest('[data-remind]');
+  const sendMessageButton = event.target.closest('[data-send-message]');
+  const closePotButton = event.target.closest('[data-close-pot]');
+  const manageButton = event.target.closest('[data-manage]');
+  const payButton = event.target.closest('[data-pay-settlement]');
+  const openCard = event.target.closest('[data-pot-id]');
+  const selectPotButton = event.target.closest('[data-select-pot]');
+
+  if (joinButton) {
+    event.stopPropagation();
+    const pot = potById(joinButton.dataset.joinId);
+    if (pot && isJoined(pot)) {
+      state.activeChatId = pot.id;
+      setRoute('chat', pot.id);
+      return;
+    }
+    setRoute('confirm', joinButton.dataset.joinId);
+    return;
+  }
+
+  if (openCard) {
+    setRoute('detail', openCard.dataset.potId);
+    return;
+  }
+
+  if (selectPotButton) {
+    state.selectedPotId = selectPotButton.dataset.selectPot;
+  }
+
+  if (routeButton) {
+    const route = routeButton.dataset.route;
+    if (route === 'chat') {
+      setRoute('chat', state.activeChatId || state.selectedPotId || state.pots[0].id);
+      return;
+    }
+    if (route === 'settlement') {
+      const targetPot = state.selectedPotId || state.activeChatId || state.pots[0].id;
+      const pot = potById(targetPot);
+      if (pot) {
+        state.settlementTotal = pot.perPersonAmount * Math.max((pot.participants || []).length, 1);
+      }
+      setRoute('settlement', targetPot);
+      return;
+    }
+    setRoute(route, state.selectedPotId);
+    return;
+  }
+
+  if (confirmJoin) {
+    state = core.joinPot(state, confirmJoin.dataset.confirmJoin);
+    state.activeChatId = confirmJoin.dataset.confirmJoin;
+    showToast('참여가 확정됐어요. 채팅방에서 일정과 정산을 이어가세요.');
+    setRoute('chat', confirmJoin.dataset.confirmJoin);
+    return;
+  }
+
+  if (chargeButton) {
+    state = core.chargePoints(state, Number(chargeButton.dataset.charge));
+    showToast(`${Number(chargeButton.dataset.charge).toLocaleString('ko-KR')}P가 충전됐어요.`);
+    render();
+    return;
+  }
+
+  if (requestSettlementButton) {
+    state = core.requestSettlement(state, requestSettlementButton.dataset.requestSettlement, state.settlementTotal);
+    showToast('정산 요청을 보냈어요. 채팅방과 My 결제에서 상태가 함께 갱신됩니다.');
+    setRoute('chat', requestSettlementButton.dataset.requestSettlement);
+    return;
+  }
+
+  if (remindButton) {
+    showToast(core.sendReminder(remindButton.dataset.remind));
+    return;
+  }
+
+  if (sendMessageButton) {
+    const input = document.querySelector('#message-input');
+    const text = input.value.trim();
+    if (!text) return;
+    state = core.sendChatMessage(state, sendMessageButton.dataset.sendMessage, {
+      from: state.user.id,
+      name: state.user.name,
+      text,
+      mine: true,
+      type: 'mine'
+    });
+    render();
+    return;
+  }
+
+  if (closePotButton) {
+    state = core.updateRecruitmentStatus(state, closePotButton.dataset.closePot, '모집완료');
+    showToast('모집을 마감했어요. 이제 정산 단계로 이어갈 수 있어요.');
+    render();
+    return;
+  }
+
+  if (manageButton) {
+    const pot = potById(manageButton.dataset.manage);
+    const waiting = (pot && pot.waitingParticipants) ? pot.waitingParticipants.length : 0;
+    showToast(waiting ? `대기 중인 메이트가 ${waiting}명 있어요.` : '현재 대기 인원은 없어요.');
+    return;
+  }
+
+  if (payButton) {
+    const pot = potById(payButton.dataset.paySettlement);
+    state = core.markParticipantPaid(state, payButton.dataset.paySettlement, state.user.id, pot.perPersonAmount);
+    showToast(`내 몫 ${won(pot.perPersonAmount)} 결제가 반영됐어요.`);
+    render();
+  }
+});
+
+app.addEventListener('input', (event) => {
+  if (event.target.id === 'search-input') {
+    state.query = event.target.value;
+    renderHome();
+    return;
+  }
+
+  if (event.target.id === 'settlement-total') {
+    state.settlementTotal = Number(event.target.value || 0);
+    renderSettlement();
+  }
+});
+
+app.addEventListener('change', (event) => {
+  if (event.target.id === 'create-category') {
+    state.createCategory = event.target.value;
+    renderCreate();
+    return;
+  }
+
+  if (event.target.id === 'radius-filter') {
+    state.radiusFilter = Number(event.target.value || 500);
+    renderHome();
+    return;
+  }
+
+  if (event.target.id === 'sort-filter') {
+    state.sortMode = event.target.value;
+    renderHome();
+  }
+});
+
+app.addEventListener('click', (event) => {
+  const categoryButton = event.target.closest('[data-category]');
+  if (!categoryButton) return;
+  state.selectedCategory = categoryButton.dataset.category;
+  renderHome();
+});
+
+app.addEventListener('submit', (event) => {
+  if (event.target.id !== 'create-form') return;
+  event.preventDefault();
+
+  const formData = new FormData(event.target);
+  const input = Object.fromEntries(formData.entries());
+  const pot = core.createPot({
+    ...input,
+    host: { id: state.user.id, name: state.user.name, avatar: state.user.avatar, isMe: true },
+    distanceMeters: 140,
+    urgencyLabel: '새 모집',
+    urgencyRank: 2,
+    trustBadges: ['위치인증', '방장인증', '안전정산']
+  });
+
+  state.pots.unshift(pot);
+  state.selectedPotId = pot.id;
+  state.activeChatId = pot.id;
+  state.chats[pot.id] = {
+    potId: pot.id,
+    notice: `${pot.category} 생성이 완료됐어요. 모집이 완료되면 이 방에서 정산을 이어갈 수 있어요.`,
+    messages: [
+      { from: 'system', text: '새 팟이 생성됐어요. 메이트 모집을 시작합니다.', type: 'system', system: true }
+    ]
+  };
+
+  showToast('새 팟을 만들었어요. 상세에서 모집 정보를 바로 확인해 보세요.');
+  setRoute('detail', pot.id);
+});
+
+render();
+
+  </script>
+</body>
+</html>
