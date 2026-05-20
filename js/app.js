@@ -59,17 +59,113 @@ function heroSpotlightText(pot) {
   };
 }
 
-function rerenderHomeSearch(input) {
-  if (!input || state.route !== 'home') {
+function getHomeSections() {
+  return core.buildHomeSections(state.pots, {
+    category: state.selectedCategory,
+    query: state.query,
+    radius: state.radiusFilter,
+    sortMode: state.sortMode
+  });
+}
+
+function renderHomeCategoryStats(sections) {
+  return sections.categoryStats.map((item) => `
+    <div class="hub-stat">
+      <span>${item.category}</span>
+      <strong>${item.count}개</strong>
+      <span class="hub-stat__meta">${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</span>
+    </div>
+  `).join('');
+}
+
+function renderHomeSpotlight(sections) {
+  const spotlightPot = sections.recommended[0] || sections.visible[0] || state.pots[0];
+  const spotlight = heroSpotlightText(spotlightPot);
+
+  return `
+    <strong>${spotlight.title}</strong>
+    <span>${spotlight.description}</span>
+  `;
+}
+
+function renderHomeResults(sections) {
+  const promo = state.promoBanners[0];
+
+  return `
+    <section class="home-section">
+      <div class="section-heading">
+        <h2>지금 참여하기 좋은 팟</h2>
+        <span>${sections.visible.length}개</span>
+      </div>
+      <div class="pot-list pot-list--home">
+        ${sections.recommended.length
+          ? sections.recommended.map((pot) => potCard(pot)).join('')
+          : '<div class="empty-state">조건에 맞는 팟이 아직 없어요.</div>'}
+      </div>
+    </section>
+
+    <section class="home-section closing-soon-section">
+      <div class="section-heading">
+        <h2>마감 임박</h2>
+        <span>놓치기 전에 확인</span>
+      </div>
+      <div class="spotlight-grid">
+        ${sections.closingSoon.length
+          ? sections.closingSoon.map((pot) => potCard(pot, { compact: true })).join('')
+          : '<div class="empty-state">급한 모집은 아직 없어요.</div>'}
+      </div>
+    </section>
+
+    <section class="home-section category-spotlight">
+      <div class="section-heading">
+        <h2>카테고리별 대표 팟</h2>
+        <span>균형 있게 둘러보기</span>
+      </div>
+      <div class="spotlight-grid">
+        ${sections.categorySpotlights.map((pot) => potCard(pot, { compact: true })).join('')}
+      </div>
+    </section>
+
+    <section class="home-section">
+      <div class="coupon-card">
+        <span>${promo.label}</span>
+        <strong>${promo.title}</strong>
+        <p>${promo.description}</p>
+      </div>
+    </section>
+  `;
+}
+
+function updateHomeSearchResults(input) {
+  if (state.route !== 'home') {
     return;
   }
 
-  const value = input.value;
-  const selectionStart = input.selectionStart;
-  const selectionEnd = input.selectionEnd;
+  const value = input ? input.value : state.query;
+  const selectionStart = input ? input.selectionStart : null;
+  const selectionEnd = input ? input.selectionEnd : null;
 
   state.query = value;
-  renderHome({ animate: false });
+  const sections = getHomeSections();
+
+  const stats = document.querySelector('#home-category-stats');
+  if (stats) {
+    stats.innerHTML = renderHomeCategoryStats(sections);
+  }
+
+  const spotlight = document.querySelector('#home-spotlight-card');
+  if (spotlight) {
+    spotlight.innerHTML = renderHomeSpotlight(sections);
+  }
+
+  const results = document.querySelector('#home-results');
+  if (results) {
+    results.innerHTML = renderHomeResults(sections);
+  }
+
+  if (!input) {
+    return;
+  }
 
   const nextInput = document.querySelector('#search-input');
   if (!nextInput) {
@@ -289,57 +385,68 @@ function categoryFields(category) {
 }
 
 function renderOnboarding() {
-  const spotlight = heroSpotlightText(state.pots[0]);
-
   app.innerHTML = `
     <section class="onboarding-screen screen-enter">
-      <div>
-        <div class="brand-mark"><span class="brand-icon">P</span>팟메이트(PotMate)</div>
-        <div class="student-chip-row">
-          ${createCategories.map((category) => `<span class="student-chip">${category}</span>`).join('')}
+      <div class="onboarding-header">
+        <div class="onboarding-brand">
+          <span class="brand-icon">P</span>
+          <strong>PotMate</strong>
         </div>
-        <div class="onboarding-hero">
-          <span class="home-hero-note">캠퍼스 메이트와 바로 이어지는 위치 기반 N빵</span>
-          <h1>근처 팟, 바로 합류</h1>
-          <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
-        </div>
-        <div class="onboarding-hero-visual">
-          <div class="onboarding-photo-frame">
-            <img class="onboarding-photo" src="./images/onboarding-campus.png" alt="팟메이트 대학생 온보딩 목업">
+        <button class="onboarding-alert" type="button" aria-label="알림">
+          <span>🔔</span>
+          <i></i>
+        </button>
+      </div>
+
+      <div class="onboarding-copy">
+        <h1 aria-label="근처 팟, 바로 합류">근처 팟,<br><span>바로 합류</span></h1>
+        <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
+      </div>
+
+      <div class="onboarding-photo-card">
+        <div class="onboarding-photo" style="background-image: url('./images/onboarding-campus.png');"></div>
+      </div>
+
+      <div class="onboarding-card-stack">
+        <article class="onboarding-action-card">
+          <div class="onboarding-action-icon onboarding-action-icon--pin">
+            <span>1</span>
           </div>
-          <div class="hero-spotlight-card">
-            <strong>${spotlight.title}</strong>
-            <span>${spotlight.description}</span>
+          <div class="onboarding-action-copy">
+            <strong>근처 팟 추천</strong>
+            <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
           </div>
-        </div>
-        <div class="floating-preview">
-          <div class="hero-stat-card">
-            <strong>내 주변 추천</strong>
-            <span>가천대 180m · 마라탕 · 1명 남음</span>
+          <span class="onboarding-action-arrow">›</span>
+        </article>
+
+        <article class="onboarding-action-card">
+          <div class="onboarding-action-icon onboarding-action-icon--shield">✓</div>
+          <div class="onboarding-action-copy">
+            <strong>안전한 정산</strong>
+            <p>참여 후 채팅하고 바로 정산</p>
           </div>
-          <div class="hero-stat-card">
-            <strong>안전 정산</strong>
-            <span>참여 후 채팅하고 바로 정산</span>
-          </div>
+          <span class="onboarding-action-arrow">›</span>
+        </article>
+      </div>
+
+      <div class="onboarding-chip-block">
+        <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
+        <div class="onboarding-chip-row">
+          ${createCategories.map((category, index) => `
+            <span class="onboarding-chip ${index === 0 ? 'is-active' : ''}">${category}</span>
+          `).join('')}
         </div>
       </div>
-      <button class="gradient-button full-button" type="button" data-route="home">바로 시작하기</button>
+
+      <button class="gradient-button full-button onboarding-start-button" type="button" data-route="home">바로 시작하기</button>
+      <p class="onboarding-login-note">이미 계정이 있으신가요? <span>로그인</span></p>
     </section>
   `;
 }
 
 function renderHome(options = {}) {
   const animate = options.animate !== false;
-  const sections = core.buildHomeSections(state.pots, {
-    category: state.selectedCategory,
-    query: state.query,
-    radius: state.radiusFilter,
-    sortMode: state.sortMode
-  });
-
-  const promo = state.promoBanners[0];
-  const spotlightPot = sections.recommended[0] || sections.visible[0] || state.pots[0];
-  const spotlight = heroSpotlightText(spotlightPot);
+  const sections = getHomeSections();
 
   app.innerHTML = `
     <section class="screen ${animate ? 'screen-enter' : ''}">
@@ -356,18 +463,11 @@ function renderHome(options = {}) {
         <div class="student-chip-row student-chip-row--compact">
           ${createCategories.map((category) => `<span class="student-chip">${category}</span>`).join('')}
         </div>
-        <div class="hero-spotlight-card hero-spotlight-card--inline">
-          <strong>${spotlight.title}</strong>
-          <span>${spotlight.description}</span>
+        <div id="home-spotlight-card" class="hero-spotlight-card hero-spotlight-card--inline">
+          ${renderHomeSpotlight(sections)}
         </div>
-        <div class="hub-summary-grid">
-          ${sections.categoryStats.map((item) => `
-            <div class="hub-stat">
-              <span>${item.category}</span>
-              <strong>${item.count}개</strong>
-              <span class="hub-stat__meta">${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</span>
-            </div>
-          `).join('')}
+        <div id="home-category-stats" class="hub-summary-grid">
+          ${renderHomeCategoryStats(sections)}
         </div>
       </section>
 
@@ -397,47 +497,9 @@ function renderHome(options = {}) {
         `).join('')}
       </div>
 
-      <section class="home-section">
-        <div class="section-heading">
-          <h2>지금 참여하기 좋은 팟</h2>
-          <span>${sections.visible.length}개</span>
-        </div>
-        <div class="pot-list pot-list--home">
-          ${sections.recommended.length
-            ? sections.recommended.map((pot) => potCard(pot)).join('')
-            : '<div class="empty-state">조건에 맞는 팟이 아직 없어요.</div>'}
-        </div>
-      </section>
-
-      <section class="home-section closing-soon-section">
-        <div class="section-heading">
-          <h2>마감 임박</h2>
-          <span>놓치기 전에 확인</span>
-        </div>
-        <div class="spotlight-grid">
-          ${sections.closingSoon.length
-            ? sections.closingSoon.map((pot) => potCard(pot, { compact: true })).join('')
-            : '<div class="empty-state">급한 모집은 아직 없어요.</div>'}
-        </div>
-      </section>
-
-      <section class="home-section category-spotlight">
-        <div class="section-heading">
-          <h2>카테고리별 대표 팟</h2>
-          <span>균형 있게 둘러보기</span>
-        </div>
-        <div class="spotlight-grid">
-          ${sections.categorySpotlights.map((pot) => potCard(pot, { compact: true })).join('')}
-        </div>
-      </section>
-
-      <section class="home-section">
-        <div class="coupon-card">
-          <span>${promo.label}</span>
-          <strong>${promo.title}</strong>
-          <p>${promo.description}</p>
-        </div>
-      </section>
+      <div id="home-results">
+        ${renderHomeResults(sections)}
+      </div>
     </section>
     ${nav('home')}
   `;
@@ -939,7 +1001,7 @@ app.addEventListener('input', (event) => {
     if (isSearchComposing) {
       return;
     }
-    rerenderHomeSearch(event.target);
+    updateHomeSearchResults(event.target);
     return;
   }
 
@@ -958,7 +1020,7 @@ app.addEventListener('compositionstart', (event) => {
 app.addEventListener('compositionend', (event) => {
   if (event.target.id === 'search-input') {
     isSearchComposing = false;
-    rerenderHomeSearch(event.target);
+    updateHomeSearchResults(event.target);
   }
 });
 

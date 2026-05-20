@@ -88,11 +88,11 @@ em {
 }
 
 .onboarding-screen {
-  display: flex;
+  display: grid;
+  align-content: start;
+  gap: 18px;
   min-height: 100vh;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 36px 24px;
+  padding: 30px 20px 28px;
   color: var(--color-ink);
   background:
     radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.92), transparent 9rem),
@@ -101,9 +101,18 @@ em {
     var(--gradient-onboarding);
 }
 
-.brand-mark {
-  display: inline-flex;
+.onboarding-header,
+.onboarding-brand,
+.onboarding-action-card {
+  display: flex;
   align-items: center;
+}
+
+.onboarding-header {
+  justify-content: space-between;
+}
+
+.onboarding-brand {
   gap: 10px;
   font-weight: 900;
   color: var(--color-main);
@@ -120,17 +129,192 @@ em {
   box-shadow: inset 0 1px 0 #fff, 0 14px 30px rgba(170, 1, 231, 0.16);
 }
 
-.onboarding-hero h1 {
-  margin: 14px 0 10px;
-  font-size: 40px;
-  line-height: 1.08;
+.onboarding-alert {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 16px;
+  color: #6d2cc4;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 26px rgba(89, 21, 124, 0.12);
+  font-size: 17px;
 }
 
-.onboarding-hero p {
+.onboarding-alert i {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #bb3cff;
+}
+
+.onboarding-copy h1 {
+  margin: 0;
+  font-size: 31px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.onboarding-copy h1 span {
+  color: var(--color-main);
+}
+
+.onboarding-copy p {
+  margin: 10px 0 0;
+  color: var(--color-muted);
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.onboarding-photo-card {
+  overflow: hidden;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 22px 48px rgba(89, 21, 124, 0.14);
+}
+
+.onboarding-photo {
+  width: 100%;
+  height: 252px;
+  background-repeat: no-repeat;
+  background-size: 158%;
+  background-position: center 31%;
+}
+
+.onboarding-card-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.onboarding-action-card {
+  gap: 14px;
+  padding: 18px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-card);
+}
+
+.onboarding-action-icon {
+  position: relative;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  place-items: center;
+  border-radius: 50%;
+  color: #a220e4;
+  background: linear-gradient(180deg, #fff 0%, #f8eaff 100%);
+  box-shadow: inset 0 0 0 1px rgba(239, 216, 248, 0.95);
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.onboarding-action-icon--pin span {
+  position: relative;
+  top: -1px;
+}
+
+.onboarding-action-icon--pin::after {
+  content: "1";
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--gradient-main);
+  box-shadow: 0 10px 22px rgba(170, 1, 231, 0.24);
+  font-size: 13px;
+}
+
+.onboarding-action-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.onboarding-action-copy strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.onboarding-action-copy p {
   margin: 0;
   color: var(--color-muted);
-  font-size: 18px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.onboarding-action-copy em {
+  color: var(--color-main);
+  font-weight: 900;
+}
+
+.onboarding-action-arrow {
+  color: #a38ab4;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.onboarding-chip-block {
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-chip-title {
+  font-size: 15px;
+}
+
+.onboarding-chip-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.onboarding-chip {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #6d6281;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(239, 216, 248, 0.92), 0 8px 18px rgba(89, 21, 124, 0.06);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.onboarding-chip.is-active {
+  color: var(--color-main);
+  box-shadow: inset 0 0 0 2px rgba(170, 1, 231, 0.8), 0 10px 20px rgba(89, 21, 124, 0.08);
+}
+
+.onboarding-start-button {
+  min-height: 56px;
+  margin-top: 4px;
+  font-size: 17px;
+}
+
+.onboarding-login-note {
+  margin: 0;
+  color: var(--color-muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+.onboarding-login-note span {
+  color: var(--color-main);
+  font-weight: 900;
 }
 
 .floating-preview,
@@ -196,31 +380,6 @@ em {
   box-shadow: inset 0 0 0 1px rgba(239, 216, 248, 0.92);
   font-size: 12px;
   font-weight: 900;
-}
-
-.onboarding-hero-visual {
-  position: relative;
-  margin: 22px 0 18px;
-  padding: 16px;
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.92), transparent 8rem),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 231, 254, 0.95) 100%);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-.onboarding-photo-frame {
-  overflow: hidden;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 42px rgba(89, 21, 124, 0.14);
-}
-
-.onboarding-photo {
-  display: block;
-  width: 100%;
-  height: auto;
 }
 
 .hero-spotlight-card,
@@ -1785,17 +1944,113 @@ function heroSpotlightText(pot) {
   };
 }
 
-function rerenderHomeSearch(input) {
-  if (!input || state.route !== 'home') {
+function getHomeSections() {
+  return core.buildHomeSections(state.pots, {
+    category: state.selectedCategory,
+    query: state.query,
+    radius: state.radiusFilter,
+    sortMode: state.sortMode
+  });
+}
+
+function renderHomeCategoryStats(sections) {
+  return sections.categoryStats.map((item) => `
+    <div class="hub-stat">
+      <span>${item.category}</span>
+      <strong>${item.count}개</strong>
+      <span class="hub-stat__meta">${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</span>
+    </div>
+  `).join('');
+}
+
+function renderHomeSpotlight(sections) {
+  const spotlightPot = sections.recommended[0] || sections.visible[0] || state.pots[0];
+  const spotlight = heroSpotlightText(spotlightPot);
+
+  return `
+    <strong>${spotlight.title}</strong>
+    <span>${spotlight.description}</span>
+  `;
+}
+
+function renderHomeResults(sections) {
+  const promo = state.promoBanners[0];
+
+  return `
+    <section class="home-section">
+      <div class="section-heading">
+        <h2>지금 참여하기 좋은 팟</h2>
+        <span>${sections.visible.length}개</span>
+      </div>
+      <div class="pot-list pot-list--home">
+        ${sections.recommended.length
+          ? sections.recommended.map((pot) => potCard(pot)).join('')
+          : '<div class="empty-state">조건에 맞는 팟이 아직 없어요.</div>'}
+      </div>
+    </section>
+
+    <section class="home-section closing-soon-section">
+      <div class="section-heading">
+        <h2>마감 임박</h2>
+        <span>놓치기 전에 확인</span>
+      </div>
+      <div class="spotlight-grid">
+        ${sections.closingSoon.length
+          ? sections.closingSoon.map((pot) => potCard(pot, { compact: true })).join('')
+          : '<div class="empty-state">급한 모집은 아직 없어요.</div>'}
+      </div>
+    </section>
+
+    <section class="home-section category-spotlight">
+      <div class="section-heading">
+        <h2>카테고리별 대표 팟</h2>
+        <span>균형 있게 둘러보기</span>
+      </div>
+      <div class="spotlight-grid">
+        ${sections.categorySpotlights.map((pot) => potCard(pot, { compact: true })).join('')}
+      </div>
+    </section>
+
+    <section class="home-section">
+      <div class="coupon-card">
+        <span>${promo.label}</span>
+        <strong>${promo.title}</strong>
+        <p>${promo.description}</p>
+      </div>
+    </section>
+  `;
+}
+
+function updateHomeSearchResults(input) {
+  if (state.route !== 'home') {
     return;
   }
 
-  const value = input.value;
-  const selectionStart = input.selectionStart;
-  const selectionEnd = input.selectionEnd;
+  const value = input ? input.value : state.query;
+  const selectionStart = input ? input.selectionStart : null;
+  const selectionEnd = input ? input.selectionEnd : null;
 
   state.query = value;
-  renderHome({ animate: false });
+  const sections = getHomeSections();
+
+  const stats = document.querySelector('#home-category-stats');
+  if (stats) {
+    stats.innerHTML = renderHomeCategoryStats(sections);
+  }
+
+  const spotlight = document.querySelector('#home-spotlight-card');
+  if (spotlight) {
+    spotlight.innerHTML = renderHomeSpotlight(sections);
+  }
+
+  const results = document.querySelector('#home-results');
+  if (results) {
+    results.innerHTML = renderHomeResults(sections);
+  }
+
+  if (!input) {
+    return;
+  }
 
   const nextInput = document.querySelector('#search-input');
   if (!nextInput) {
@@ -2015,57 +2270,68 @@ function categoryFields(category) {
 }
 
 function renderOnboarding() {
-  const spotlight = heroSpotlightText(state.pots[0]);
-
   app.innerHTML = `
     <section class="onboarding-screen screen-enter">
-      <div>
-        <div class="brand-mark"><span class="brand-icon">P</span>팟메이트(PotMate)</div>
-        <div class="student-chip-row">
-          ${createCategories.map((category) => `<span class="student-chip">${category}</span>`).join('')}
+      <div class="onboarding-header">
+        <div class="onboarding-brand">
+          <span class="brand-icon">P</span>
+          <strong>PotMate</strong>
         </div>
-        <div class="onboarding-hero">
-          <span class="home-hero-note">캠퍼스 메이트와 바로 이어지는 위치 기반 N빵</span>
-          <h1>근처 팟, 바로 합류</h1>
-          <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
-        </div>
-        <div class="onboarding-hero-visual">
-          <div class="onboarding-photo-frame">
-            <img class="onboarding-photo" src="./images/onboarding-campus.png" alt="팟메이트 대학생 온보딩 목업">
+        <button class="onboarding-alert" type="button" aria-label="알림">
+          <span>🔔</span>
+          <i></i>
+        </button>
+      </div>
+
+      <div class="onboarding-copy">
+        <h1 aria-label="근처 팟, 바로 합류">근처 팟,<br><span>바로 합류</span></h1>
+        <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
+      </div>
+
+      <div class="onboarding-photo-card">
+        <div class="onboarding-photo" style="background-image: url('./images/onboarding-campus.png');"></div>
+      </div>
+
+      <div class="onboarding-card-stack">
+        <article class="onboarding-action-card">
+          <div class="onboarding-action-icon onboarding-action-icon--pin">
+            <span>1</span>
           </div>
-          <div class="hero-spotlight-card">
-            <strong>${spotlight.title}</strong>
-            <span>${spotlight.description}</span>
+          <div class="onboarding-action-copy">
+            <strong>근처 팟 추천</strong>
+            <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
           </div>
-        </div>
-        <div class="floating-preview">
-          <div class="hero-stat-card">
-            <strong>내 주변 추천</strong>
-            <span>가천대 180m · 마라탕 · 1명 남음</span>
+          <span class="onboarding-action-arrow">›</span>
+        </article>
+
+        <article class="onboarding-action-card">
+          <div class="onboarding-action-icon onboarding-action-icon--shield">✓</div>
+          <div class="onboarding-action-copy">
+            <strong>안전한 정산</strong>
+            <p>참여 후 채팅하고 바로 정산</p>
           </div>
-          <div class="hero-stat-card">
-            <strong>안전 정산</strong>
-            <span>참여 후 채팅하고 바로 정산</span>
-          </div>
+          <span class="onboarding-action-arrow">›</span>
+        </article>
+      </div>
+
+      <div class="onboarding-chip-block">
+        <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
+        <div class="onboarding-chip-row">
+          ${createCategories.map((category, index) => `
+            <span class="onboarding-chip ${index === 0 ? 'is-active' : ''}">${category}</span>
+          `).join('')}
         </div>
       </div>
-      <button class="gradient-button full-button" type="button" data-route="home">바로 시작하기</button>
+
+      <button class="gradient-button full-button onboarding-start-button" type="button" data-route="home">바로 시작하기</button>
+      <p class="onboarding-login-note">이미 계정이 있으신가요? <span>로그인</span></p>
     </section>
   `;
 }
 
 function renderHome(options = {}) {
   const animate = options.animate !== false;
-  const sections = core.buildHomeSections(state.pots, {
-    category: state.selectedCategory,
-    query: state.query,
-    radius: state.radiusFilter,
-    sortMode: state.sortMode
-  });
-
-  const promo = state.promoBanners[0];
-  const spotlightPot = sections.recommended[0] || sections.visible[0] || state.pots[0];
-  const spotlight = heroSpotlightText(spotlightPot);
+  const sections = getHomeSections();
 
   app.innerHTML = `
     <section class="screen ${animate ? 'screen-enter' : ''}">
@@ -2082,18 +2348,11 @@ function renderHome(options = {}) {
         <div class="student-chip-row student-chip-row--compact">
           ${createCategories.map((category) => `<span class="student-chip">${category}</span>`).join('')}
         </div>
-        <div class="hero-spotlight-card hero-spotlight-card--inline">
-          <strong>${spotlight.title}</strong>
-          <span>${spotlight.description}</span>
+        <div id="home-spotlight-card" class="hero-spotlight-card hero-spotlight-card--inline">
+          ${renderHomeSpotlight(sections)}
         </div>
-        <div class="hub-summary-grid">
-          ${sections.categoryStats.map((item) => `
-            <div class="hub-stat">
-              <span>${item.category}</span>
-              <strong>${item.count}개</strong>
-              <span class="hub-stat__meta">${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</span>
-            </div>
-          `).join('')}
+        <div id="home-category-stats" class="hub-summary-grid">
+          ${renderHomeCategoryStats(sections)}
         </div>
       </section>
 
@@ -2123,47 +2382,9 @@ function renderHome(options = {}) {
         `).join('')}
       </div>
 
-      <section class="home-section">
-        <div class="section-heading">
-          <h2>지금 참여하기 좋은 팟</h2>
-          <span>${sections.visible.length}개</span>
-        </div>
-        <div class="pot-list pot-list--home">
-          ${sections.recommended.length
-            ? sections.recommended.map((pot) => potCard(pot)).join('')
-            : '<div class="empty-state">조건에 맞는 팟이 아직 없어요.</div>'}
-        </div>
-      </section>
-
-      <section class="home-section closing-soon-section">
-        <div class="section-heading">
-          <h2>마감 임박</h2>
-          <span>놓치기 전에 확인</span>
-        </div>
-        <div class="spotlight-grid">
-          ${sections.closingSoon.length
-            ? sections.closingSoon.map((pot) => potCard(pot, { compact: true })).join('')
-            : '<div class="empty-state">급한 모집은 아직 없어요.</div>'}
-        </div>
-      </section>
-
-      <section class="home-section category-spotlight">
-        <div class="section-heading">
-          <h2>카테고리별 대표 팟</h2>
-          <span>균형 있게 둘러보기</span>
-        </div>
-        <div class="spotlight-grid">
-          ${sections.categorySpotlights.map((pot) => potCard(pot, { compact: true })).join('')}
-        </div>
-      </section>
-
-      <section class="home-section">
-        <div class="coupon-card">
-          <span>${promo.label}</span>
-          <strong>${promo.title}</strong>
-          <p>${promo.description}</p>
-        </div>
-      </section>
+      <div id="home-results">
+        ${renderHomeResults(sections)}
+      </div>
     </section>
     ${nav('home')}
   `;
@@ -2665,7 +2886,7 @@ app.addEventListener('input', (event) => {
     if (isSearchComposing) {
       return;
     }
-    rerenderHomeSearch(event.target);
+    updateHomeSearchResults(event.target);
     return;
   }
 
@@ -2684,7 +2905,7 @@ app.addEventListener('compositionstart', (event) => {
 app.addEventListener('compositionend', (event) => {
   if (event.target.id === 'search-input') {
     isSearchComposing = false;
-    rerenderHomeSearch(event.target);
+    updateHomeSearchResults(event.target);
   }
 });
 

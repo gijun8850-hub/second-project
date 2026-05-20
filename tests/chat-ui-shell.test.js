@@ -38,14 +38,16 @@ test('app shell exposes the student-first onboarding copy and IME-friendly searc
   [
     '근처 팟, 바로 합류',
     '캠퍼스 N빵을 더 쉽고 빠르게',
-    'student-chip-row',
-    'onboarding-hero-visual',
+    'onboarding-header',
+    'onboarding-photo-card',
+    'onboarding-action-card',
+    '어떤 팟을 찾고 있나요?',
     'images/onboarding-campus.png',
-    'home-hero-note',
+    'onboarding-login-note',
     'isSearchComposing',
     'compositionstart',
     'compositionend',
-    'renderHome({ animate: false })'
+    'updateHomeSearchResults'
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
