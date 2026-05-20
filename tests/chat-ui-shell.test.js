@@ -33,3 +33,18 @@ test('chat renderer keeps profile rows, host badge, own-message alignment, and s
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
 });
+
+test('app shell exposes the student-first onboarding copy and IME-friendly search handling', () => {
+  [
+    '근처 팟, 바로 합류',
+    '캠퍼스 N빵을 더 쉽고 빠르게',
+    'student-chip-row',
+    'onboarding-hero-visual',
+    'home-hero-note',
+    'isSearchComposing',
+    'compositionstart',
+    'compositionend'
+  ].forEach((token) => {
+    assert.ok(app.includes(token), `Missing token: ${token}`);
+  });
+});

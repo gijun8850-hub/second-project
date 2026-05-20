@@ -14,11 +14,22 @@ let state = {
   createCategory: '배달팟'
 };
 
+let isSearchComposing = false;
+
 const app = document.querySelector('#app');
 const toast = document.querySelector('#toast');
 
 function won(amount) {
   return core.formatWon(amount);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function potById(id) {
@@ -31,6 +42,44 @@ function isJoined(pot) {
 
 function currentMember(pot) {
   return (pot.participants || []).find((member) => member.id === state.user.id);
+}
+
+function heroSpotlightText(pot) {
+  if (!pot) {
+    return {
+      title: '내 주변 추천',
+      description: '지금 근처에서 바로 참여할 수 있는 팟을 보여드려요.'
+    };
+  }
+
+  const seatsLeft = Math.max(pot.maxMembers - pot.currentMembers, 0);
+  return {
+    title: '내 주변 추천',
+    description: `${pot.distanceMeters}m · ${pot.subCategory} · ${seatsLeft}명 남음`
+  };
+}
+
+function rerenderHomeSearch(input) {
+  if (!input || state.route !== 'home') {
+    return;
+  }
+
+  const value = input.value;
+  const selectionStart = input.selectionStart;
+  const selectionEnd = input.selectionEnd;
+
+  state.query = value;
+  renderHome();
+
+  const nextInput = document.querySelector('#search-input');
+  if (!nextInput) {
+    return;
+  }
+
+  nextInput.focus();
+  const cursorStart = typeof selectionStart === 'number' ? selectionStart : value.length;
+  const cursorEnd = typeof selectionEnd === 'number' ? selectionEnd : cursorStart;
+  nextInput.setSelectionRange(cursorStart, cursorEnd);
 }
 
 function setRoute(route, selectedPotId) {
@@ -240,26 +289,47 @@ function categoryFields(category) {
 }
 
 function renderOnboarding() {
+  const spotlight = heroSpotlightText(state.pots[0]);
+
   app.innerHTML = `
     <section class="onboarding-screen screen-enter">
       <div>
         <div class="brand-mark"><span class="brand-icon">P</span>팟메이트(PotMate)</div>
+        <div class="student-chip-row">
+          ${createCategories.map((category) => `<span class="student-chip">${category}</span>`).join('')}
+        </div>
         <div class="onboarding-hero">
-          <h1>사람 모집부터 정산까지, 캠퍼스 N빵을 한 번에</h1>
-          <p>배달팟, 택시팟, 구독팟, 기타팟까지 근처 메이트를 찾고 채팅과 안전 정산으로 자연스럽게 이어지게 만들어요.</p>
+          <span class="home-hero-note">캠퍼스 메이트와 바로 이어지는 위치 기반 N빵</span>
+          <h1>근처 팟, 바로 합류</h1>
+          <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
+        </div>
+        <div class="onboarding-hero-visual">
+          <div class="student-scene">
+            <div class="student-avatar-badge student-avatar-badge--rose">민</div>
+            <div class="student-avatar-badge student-avatar-badge--violet">준</div>
+            <div class="student-avatar-badge student-avatar-badge--mint">서</div>
+            <div class="student-device-card">
+              <span>함께 주문</span>
+              <strong>채팅 · 정산</strong>
+            </div>
+          </div>
+          <div class="hero-spotlight-card">
+            <strong>${spotlight.title}</strong>
+            <span>${spotlight.description}</span>
+          </div>
         </div>
         <div class="floating-preview">
-          <div class="preview-card">
-            <strong>현재 위치 기준 추천</strong>
-            <span>가천대 근처 180m · 마라탕 배달팟 · 1명 남음</span>
+          <div class="hero-stat-card">
+            <strong>내 주변 추천</strong>
+            <span>가천대 180m · 마라탕 · 1명 남음</span>
           </div>
-          <div class="preview-card">
-            <strong>안전 정산 흐름</strong>
-            <span>참여 → 채팅 → 정산 요청 → 완료 상태까지 같은 앱에서 확인</span>
+          <div class="hero-stat-card">
+            <strong>안전 정산</strong>
+            <span>참여 후 채팅하고 바로 정산</span>
           </div>
         </div>
       </div>
-      <button class="gradient-button full-button" type="button" data-route="home">팟메이트 시작하기</button>
+      <button class="gradient-button full-button" type="button" data-route="home">바로 시작하기</button>
     </section>
   `;
 }
@@ -273,6 +343,8 @@ function renderHome() {
   });
 
   const promo = state.promoBanners[0];
+  const spotlightPot = sections.recommended[0] || sections.visible[0] || state.pots[0];
+  const spotlight = heroSpotlightText(spotlightPot);
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -282,22 +354,30 @@ function renderHome() {
       </header>
 
       <section class="hub-highlight">
-        <div class="hub-highlight__label">PotMate Hub</div>
-        <h1>근처에서 바로 합류할 수 있는 N빵 팟</h1>
-        <p>사람 모집, 채팅, 정산이 한 흐름으로 이어지도록 가장 참여하기 좋은 팟을 먼저 보여줘요.</p>
+        <div class="hub-highlight__label">Campus now</div>
+        <div class="home-hero-note">근처 메이트를 가장 빠르게 만나는 캠퍼스 N빵 허브</div>
+        <h1>주변 팟을 한눈에 보고 바로 참여해요</h1>
+        <p>배달팟, 택시팟, 구독팟, 기타팟까지 거리와 마감순으로 빠르게 비교할 수 있어요.</p>
+        <div class="student-chip-row student-chip-row--compact">
+          ${createCategories.map((category) => `<span class="student-chip">${category}</span>`).join('')}
+        </div>
+        <div class="hero-spotlight-card hero-spotlight-card--inline">
+          <strong>${spotlight.title}</strong>
+          <span>${spotlight.description}</span>
+        </div>
         <div class="hub-summary-grid">
           ${sections.categoryStats.map((item) => `
             <div class="hub-stat">
               <span>${item.category}</span>
               <strong>${item.count}개</strong>
-              <em>${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</em>
+              <span class="hub-stat__meta">${item.closestDistance === null ? '모집 없음' : `${item.closestDistance}m부터`}</span>
             </div>
           `).join('')}
         </div>
       </section>
 
       <label class="search-box">
-        <input id="search-input" type="search" value="${state.query}" placeholder="마라탕, 강남역, 넷플릭스 검색">
+        <input id="search-input" type="search" value="${escapeHtml(state.query)}" placeholder="메뉴, 장소, 서비스명 검색">
       </label>
 
       <div class="filter-row">
@@ -410,7 +490,7 @@ function renderDetail() {
 
       <div class="fixed-action">
         <button class="gradient-button full-button" type="button" data-route="${alreadyJoined ? 'chat' : 'confirm'}" data-select-pot="${pot.id}">
-          ${alreadyJoined ? '채팅방으로 이동' : '참여 조건 확인하기'}
+          ${alreadyJoined ? '채팅방 가기' : '참여 조건 보기'}
         </button>
       </div>
     </section>
@@ -445,7 +525,7 @@ function renderConfirm() {
       <p class="notice">참여 후에는 채팅방으로 이동하고, 정산이 시작되면 안전 결제로 이어집니다.</p>
 
       ${result.ok ? `
-        <button class="gradient-button full-button" type="button" data-confirm-join="${pot.id}">참여 확정하고 채팅방 들어가기</button>
+        <button class="gradient-button full-button" type="button" data-confirm-join="${pot.id}">채팅방 들어가기</button>
       ` : `
         <p class="notice notice--warning">${result.reason}</p>
         <div class="wallet-quick-charge">
@@ -519,7 +599,7 @@ function renderChat() {
         <div class="host-actions">
           <button type="button" data-close-pot="${pot.id}">모집 마감</button>
           <button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 요청</button>
-          <button type="button" data-manage="${pot.id}">대기 인원 확인</button>
+          <button type="button" data-manage="${pot.id}">대기 확인</button>
         </div>
       ` : ''}
 
@@ -536,7 +616,7 @@ function renderChat() {
       </article>
 
       ${shouldPay ? `
-        <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 ${won(pot.perPersonAmount)} 결제하기</button>
+        <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 결제하기</button>
       ` : `
         <button class="secondary-button full-button" type="button" data-route="settlement" data-select-pot="${pot.id}">정산 상태 보기</button>
       `}
@@ -595,7 +675,7 @@ function renderSettlement() {
       ` : ''}
 
       ${shouldPay ? `
-        <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 ${won(pot.perPersonAmount)} 결제하기</button>
+        <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 결제하기</button>
       ` : ''}
 
       <section class="detail-stack">
@@ -861,13 +941,29 @@ app.addEventListener('click', (event) => {
 app.addEventListener('input', (event) => {
   if (event.target.id === 'search-input') {
     state.query = event.target.value;
-    renderHome();
+    if (isSearchComposing) {
+      return;
+    }
+    rerenderHomeSearch(event.target);
     return;
   }
 
   if (event.target.id === 'settlement-total') {
     state.settlementTotal = Number(event.target.value || 0);
     renderSettlement();
+  }
+});
+
+app.addEventListener('compositionstart', (event) => {
+  if (event.target.id === 'search-input') {
+    isSearchComposing = true;
+  }
+});
+
+app.addEventListener('compositionend', (event) => {
+  if (event.target.id === 'search-input') {
+    isSearchComposing = false;
+    rerenderHomeSearch(event.target);
   }
 });
 

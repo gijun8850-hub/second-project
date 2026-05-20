@@ -9,6 +9,12 @@ test('style.css defines the PotMate palette, glossy cards, and richer balanced-d
     '--color-main: #AA01E7',
     '--color-soft: #F8E7FE',
     '.mobile-shell',
+    '.student-chip-row',
+    '.student-chip',
+    '.onboarding-hero-visual',
+    '.hero-stat-card',
+    '.hero-spotlight-card',
+    '.home-hero-note',
     '.hub-highlight',
     '.filter-row',
     '.spotlight-grid',
@@ -23,6 +29,8 @@ test('style.css defines the PotMate palette, glossy cards, and richer balanced-d
     '.host-badge',
     '.bottom-nav',
     '.toast',
+    'white-space: nowrap',
+    'font-style: normal',
     '@media (min-width: 720px)',
     '@media (max-width: 420px)'
   ].forEach((token) => {
