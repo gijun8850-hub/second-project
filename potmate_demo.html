@@ -239,6 +239,31 @@ em {
   backdrop-filter: blur(18px) saturate(1.08);
 }
 
+.onboarding-action-card--spotlight {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 48%, rgba(255, 255, 255, 0.3) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -12px 24px rgba(255, 255, 255, 0.08),
+    0 22px 42px rgba(82, 19, 114, 0.12);
+  backdrop-filter: blur(22px) saturate(1.15);
+}
+
+.onboarding-action-card--spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 29px;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.55), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
 .onboarding-action-icon {
   position: relative;
   display: grid;
@@ -284,6 +309,9 @@ em {
   display: block;
   margin-bottom: 4px;
   font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .onboarding-action-copy p {
@@ -291,6 +319,9 @@ em {
   color: var(--color-muted);
   font-size: 13px;
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .onboarding-action-copy em {
@@ -757,6 +788,7 @@ em {
   color: var(--color-muted);
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .closing-soon-section .section-heading span {
@@ -784,6 +816,31 @@ em {
 .pot-card h2 {
   margin: 14px 0 8px;
   font-size: 19px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pot-card .card-copy,
+.pot-card .inline-note,
+.meta-chip,
+.meta-chip strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pot-card__footer {
+  align-items: center;
+}
+
+.pot-card__cta {
+  min-width: fit-content;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  flex: 0 0 auto;
 }
 
 .meta-grid {
@@ -1169,6 +1226,7 @@ em {
   background: transparent;
   font-size: 12px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .bottom-nav button.is-active {
@@ -2262,7 +2320,7 @@ function potCard(pot, options = {}) {
       </div>
       <div class="pot-card__footer">
         <span class="inline-note">${pot.subCategory}</span>
-        <button class="gradient-button ${compact ? '' : 'full-button'}" type="button" data-join-id="${pot.id}">
+        <button class="gradient-button pot-card__cta" type="button" data-join-id="${pot.id}">
           ${joined ? '채팅으로 이동' : '참여하기'}
         </button>
       </div>
@@ -2356,7 +2414,7 @@ function renderOnboarding() {
       </div>
 
       <div class="onboarding-card-stack">
-        <article class="onboarding-action-card">
+        <button type="button" class="onboarding-action-card onboarding-action-card--spotlight" data-onboarding-recommendation="recommended">
           <div class="onboarding-action-icon onboarding-action-icon--pin">
             <span>1</span>
           </div>
@@ -2365,16 +2423,7 @@ function renderOnboarding() {
             <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
           </div>
           <span class="onboarding-action-arrow">›</span>
-        </article>
-
-        <article class="onboarding-action-card">
-          <div class="onboarding-action-icon onboarding-action-icon--shield">✓</div>
-          <div class="onboarding-action-copy">
-            <strong>안전한 정산</strong>
-            <p>참여 후 채팅하고 바로 정산</p>
-          </div>
-          <span class="onboarding-action-arrow">›</span>
-        </article>
+        </button>
       </div>
 
       <div class="onboarding-chip-block">
@@ -2868,9 +2917,18 @@ app.addEventListener('click', (event) => {
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
   const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
+  const onboardingRecommendationButton = event.target.closest('[data-onboarding-recommendation]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
+    setRoute('home');
+    return;
+  }
+
+  if (onboardingRecommendationButton) {
+    state.selectedCategory = categories[0];
+    state.query = '';
+    state.sortMode = 'distance';
     setRoute('home');
     return;
   }

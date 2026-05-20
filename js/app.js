@@ -315,7 +315,7 @@ function potCard(pot, options = {}) {
       </div>
       <div class="pot-card__footer">
         <span class="inline-note">${pot.subCategory}</span>
-        <button class="gradient-button ${compact ? '' : 'full-button'}" type="button" data-join-id="${pot.id}">
+        <button class="gradient-button pot-card__cta" type="button" data-join-id="${pot.id}">
           ${joined ? '채팅으로 이동' : '참여하기'}
         </button>
       </div>
@@ -409,7 +409,7 @@ function renderOnboarding() {
       </div>
 
       <div class="onboarding-card-stack">
-        <article class="onboarding-action-card">
+        <button type="button" class="onboarding-action-card onboarding-action-card--spotlight" data-onboarding-recommendation="recommended">
           <div class="onboarding-action-icon onboarding-action-icon--pin">
             <span>1</span>
           </div>
@@ -418,16 +418,7 @@ function renderOnboarding() {
             <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
           </div>
           <span class="onboarding-action-arrow">›</span>
-        </article>
-
-        <article class="onboarding-action-card">
-          <div class="onboarding-action-icon onboarding-action-icon--shield">✓</div>
-          <div class="onboarding-action-copy">
-            <strong>안전한 정산</strong>
-            <p>참여 후 채팅하고 바로 정산</p>
-          </div>
-          <span class="onboarding-action-arrow">›</span>
-        </article>
+        </button>
       </div>
 
       <div class="onboarding-chip-block">
@@ -921,9 +912,18 @@ app.addEventListener('click', (event) => {
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
   const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
+  const onboardingRecommendationButton = event.target.closest('[data-onboarding-recommendation]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
+    setRoute('home');
+    return;
+  }
+
+  if (onboardingRecommendationButton) {
+    state.selectedCategory = categories[0];
+    state.query = '';
+    state.sortMode = 'distance';
     setRoute('home');
     return;
   }

@@ -232,6 +232,31 @@ em {
   backdrop-filter: blur(18px) saturate(1.08);
 }
 
+.onboarding-action-card--spotlight {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 48%, rgba(255, 255, 255, 0.3) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -12px 24px rgba(255, 255, 255, 0.08),
+    0 22px 42px rgba(82, 19, 114, 0.12);
+  backdrop-filter: blur(22px) saturate(1.15);
+}
+
+.onboarding-action-card--spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 29px;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.55), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
 .onboarding-action-icon {
   position: relative;
   display: grid;
@@ -277,6 +302,9 @@ em {
   display: block;
   margin-bottom: 4px;
   font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .onboarding-action-copy p {
@@ -284,6 +312,9 @@ em {
   color: var(--color-muted);
   font-size: 13px;
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .onboarding-action-copy em {
@@ -750,6 +781,7 @@ em {
   color: var(--color-muted);
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .closing-soon-section .section-heading span {
@@ -777,6 +809,31 @@ em {
 .pot-card h2 {
   margin: 14px 0 8px;
   font-size: 19px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pot-card .card-copy,
+.pot-card .inline-note,
+.meta-chip,
+.meta-chip strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pot-card__footer {
+  align-items: center;
+}
+
+.pot-card__cta {
+  min-width: fit-content;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  flex: 0 0 auto;
 }
 
 .meta-grid {
@@ -1162,6 +1219,7 @@ em {
   background: transparent;
   font-size: 12px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .bottom-nav button.is-active {
