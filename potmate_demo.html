@@ -243,24 +243,22 @@ em {
   position: relative;
   width: 100%;
   text-align: left;
-  border-radius: 30px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 48%, rgba(255, 255, 255, 0.3) 100%);
+  border: 1.4px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  background: transparent;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    inset 0 -12px 24px rgba(255, 255, 255, 0.08),
-    0 22px 42px rgba(82, 19, 114, 0.12);
-  backdrop-filter: blur(22px) saturate(1.15);
+    inset 0 1px 0 rgba(255, 255, 255, 0.64),
+    0 16px 30px rgba(82, 19, 114, 0.08);
+  backdrop-filter: none;
 }
 
 .onboarding-action-card--spotlight::before {
   content: "";
   position: absolute;
-  inset: 1px;
-  border-radius: 29px;
-  background:
-    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.55), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 45%);
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -821,25 +819,41 @@ em {
   text-overflow: ellipsis;
 }
 
-.pot-card .card-copy,
-.pot-card .inline-note,
-.meta-chip,
+.pot-card .card-copy {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.pot-card__footer {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.pot-card .inline-note {
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .meta-chip strong {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.pot-card__footer {
-  align-items: center;
-}
-
 .pot-card__cta {
   min-width: fit-content;
   min-height: 42px;
-  padding: 0 16px;
+  margin-left: auto;
+  padding: 0 14px;
   border-radius: 16px;
-  font-size: 14px;
+  font-size: 13px;
   flex: 0 0 auto;
 }
 
