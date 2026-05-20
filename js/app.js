@@ -386,7 +386,7 @@ function categoryFields(category) {
 
 function renderOnboarding() {
   app.innerHTML = `
-    <section class="onboarding-screen screen-enter">
+    <section class="onboarding-screen onboarding-screen--scene screen-enter" style="--onboarding-scene: url('./images/onboarding-campus.png');">
       <div class="onboarding-header">
         <div class="onboarding-brand">
           <span class="brand-icon">P</span>
@@ -403,8 +403,8 @@ function renderOnboarding() {
         <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
       </div>
 
-      <div class="onboarding-photo-card">
-        <div class="onboarding-photo" style="background-image: url('./images/onboarding-campus.png');"></div>
+      <div class="onboarding-photo-card" aria-hidden="true">
+        <div class="onboarding-photo"></div>
       </div>
 
       <div class="onboarding-card-stack">
