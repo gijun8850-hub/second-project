@@ -24,6 +24,7 @@ test('style.css defines the PotMate palette, glossy cards, and richer balanced-d
     '.login-form',
     '.login-card',
     '.pot-card__cta',
+    'mix-blend-mode: difference',
     'text-overflow: ellipsis',
     'background-size: 112% auto',
     '.hub-highlight',
