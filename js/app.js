@@ -386,14 +386,60 @@ function categoryFields(category) {
 
 function renderOnboarding() {
   app.innerHTML = `
-    <section class="onboarding-screen onboarding-screen--mockup-bg screen-enter">
-      <div class="sr-only">
-        <h1>근처 팟, 바로 합류</h1>
-        <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
-        <p>어떤 팟을 찾고 있나요?</p>
-        <p class="onboarding-login-note">이미 계정이 있으신가요? 로그인</p>
+    <section class="onboarding-screen screen-enter">
+      <div class="onboarding-header">
+        <div class="onboarding-brand">
+          <span class="brand-icon">P</span>
+          <strong>PotMate</strong>
+        </div>
+        <button class="onboarding-alert" type="button" aria-label="알림">
+          <span>🔔</span>
+          <i></i>
+        </button>
       </div>
-      <button class="onboarding-hotspot" type="button" data-route="home" aria-label="바로 시작하기"></button>
+
+      <div class="onboarding-copy">
+        <h1 aria-label="근처 팟, 바로 합류">근처 팟,<br><span>바로 합류</span></h1>
+        <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
+      </div>
+
+      <div class="onboarding-photo-card">
+        <div class="onboarding-photo" style="background-image: url('./images/onboarding-campus.png');"></div>
+      </div>
+
+      <div class="onboarding-card-stack">
+        <article class="onboarding-action-card">
+          <div class="onboarding-action-icon onboarding-action-icon--pin">
+            <span>1</span>
+          </div>
+          <div class="onboarding-action-copy">
+            <strong>근처 팟 추천</strong>
+            <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
+          </div>
+          <span class="onboarding-action-arrow">›</span>
+        </article>
+
+        <article class="onboarding-action-card">
+          <div class="onboarding-action-icon onboarding-action-icon--shield">✓</div>
+          <div class="onboarding-action-copy">
+            <strong>안전한 정산</strong>
+            <p>참여 후 채팅하고 바로 정산</p>
+          </div>
+          <span class="onboarding-action-arrow">›</span>
+        </article>
+      </div>
+
+      <div class="onboarding-chip-block">
+        <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
+        <div class="onboarding-chip-row">
+          ${createCategories.map((category, index) => `
+            <span class="onboarding-chip ${index === 0 ? 'is-active' : ''}">${category}</span>
+          `).join('')}
+        </div>
+      </div>
+
+      <button class="gradient-button full-button onboarding-start-button" type="button" data-route="home">바로 시작하기</button>
+      <p class="onboarding-login-note">이미 계정이 있으신가요? <span>로그인</span></p>
     </section>
   `;
 }
