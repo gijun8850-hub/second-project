@@ -201,7 +201,7 @@ em {
 .onboarding-hero-visual {
   position: relative;
   margin: 22px 0 18px;
-  padding: 20px;
+  padding: 16px;
   border-radius: 30px;
   background:
     radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.92), transparent 8rem),
@@ -210,71 +210,17 @@ em {
   overflow: hidden;
 }
 
-.student-scene {
-  position: relative;
-  min-height: 150px;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 22% 22%, rgba(170, 1, 231, 0.14), transparent 5rem),
-    radial-gradient(circle at 78% 32%, rgba(111, 75, 255, 0.16), transparent 5rem),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(249, 239, 255, 0.94) 100%);
+.onboarding-photo-frame {
+  overflow: hidden;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 42px rgba(89, 21, 124, 0.14);
 }
 
-.student-avatar-badge,
-.student-device-card {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  border-radius: 22px;
-  box-shadow: 0 18px 38px rgba(89, 21, 124, 0.14);
-}
-
-.student-avatar-badge {
-  width: 68px;
-  height: 68px;
-  color: #fff;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.student-avatar-badge--rose {
-  top: 20px;
-  left: 18px;
-  background: linear-gradient(135deg, #ff7bc8 0%, #d056ff 100%);
-}
-
-.student-avatar-badge--violet {
-  top: 44px;
-  right: 22px;
-  background: linear-gradient(135deg, #884dff 0%, #aa01e7 100%);
-}
-
-.student-avatar-badge--mint {
-  bottom: 18px;
-  left: 92px;
-  background: linear-gradient(135deg, #3cc7b4 0%, #4a9cff 100%);
-}
-
-.student-device-card {
-  right: 66px;
-  bottom: 14px;
-  min-width: 122px;
-  min-height: 76px;
-  padding: 12px 16px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.94);
-}
-
-.student-device-card span {
-  color: var(--color-muted);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.student-device-card strong {
-  margin-top: 4px;
-  color: var(--color-main);
-  font-size: 16px;
+.onboarding-photo {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .hero-spotlight-card,
@@ -1064,11 +1010,6 @@ em {
     font-size: 34px;
   }
 
-  .student-device-card {
-    right: 18px;
-    min-width: 108px;
-  }
-
   .host-actions,
   .wallet-quick-charge,
   .filter-row,
@@ -1854,7 +1795,7 @@ function rerenderHomeSearch(input) {
   const selectionEnd = input.selectionEnd;
 
   state.query = value;
-  renderHome();
+  renderHome({ animate: false });
 
   const nextInput = document.querySelector('#search-input');
   if (!nextInput) {
@@ -2089,14 +2030,8 @@ function renderOnboarding() {
           <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
         </div>
         <div class="onboarding-hero-visual">
-          <div class="student-scene">
-            <div class="student-avatar-badge student-avatar-badge--rose">민</div>
-            <div class="student-avatar-badge student-avatar-badge--violet">준</div>
-            <div class="student-avatar-badge student-avatar-badge--mint">서</div>
-            <div class="student-device-card">
-              <span>함께 주문</span>
-              <strong>채팅 · 정산</strong>
-            </div>
+          <div class="onboarding-photo-frame">
+            <img class="onboarding-photo" src="./images/onboarding-campus.png" alt="팟메이트 대학생 온보딩 목업">
           </div>
           <div class="hero-spotlight-card">
             <strong>${spotlight.title}</strong>
@@ -2119,7 +2054,8 @@ function renderOnboarding() {
   `;
 }
 
-function renderHome() {
+function renderHome(options = {}) {
+  const animate = options.animate !== false;
   const sections = core.buildHomeSections(state.pots, {
     category: state.selectedCategory,
     query: state.query,
@@ -2132,7 +2068,7 @@ function renderHome() {
   const spotlight = heroSpotlightText(spotlightPot);
 
   app.innerHTML = `
-    <section class="screen screen-enter">
+    <section class="screen ${animate ? 'screen-enter' : ''}">
       <header class="topbar topbar--hub">
         <span class="location-pill">현재 위치 · ${state.user.locationLabel}</span>
         <span class="status-pill">${won(state.pointBalance)}</span>
@@ -2761,13 +2697,13 @@ app.addEventListener('change', (event) => {
 
   if (event.target.id === 'radius-filter') {
     state.radiusFilter = Number(event.target.value || 500);
-    renderHome();
+    renderHome({ animate: false });
     return;
   }
 
   if (event.target.id === 'sort-filter') {
     state.sortMode = event.target.value;
-    renderHome();
+    renderHome({ animate: false });
   }
 });
 
@@ -2775,7 +2711,7 @@ app.addEventListener('click', (event) => {
   const categoryButton = event.target.closest('[data-category]');
   if (!categoryButton) return;
   state.selectedCategory = categoryButton.dataset.category;
-  renderHome();
+  renderHome({ animate: false });
 });
 
 app.addEventListener('submit', (event) => {

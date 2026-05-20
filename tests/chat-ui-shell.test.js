@@ -40,10 +40,12 @@ test('app shell exposes the student-first onboarding copy and IME-friendly searc
     '캠퍼스 N빵을 더 쉽고 빠르게',
     'student-chip-row',
     'onboarding-hero-visual',
+    'images/onboarding-campus.png',
     'home-hero-note',
     'isSearchComposing',
     'compositionstart',
-    'compositionend'
+    'compositionend',
+    'renderHome({ animate: false })'
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });

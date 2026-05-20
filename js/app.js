@@ -69,7 +69,7 @@ function rerenderHomeSearch(input) {
   const selectionEnd = input.selectionEnd;
 
   state.query = value;
-  renderHome();
+  renderHome({ animate: false });
 
   const nextInput = document.querySelector('#search-input');
   if (!nextInput) {
@@ -304,14 +304,8 @@ function renderOnboarding() {
           <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
         </div>
         <div class="onboarding-hero-visual">
-          <div class="student-scene">
-            <div class="student-avatar-badge student-avatar-badge--rose">민</div>
-            <div class="student-avatar-badge student-avatar-badge--violet">준</div>
-            <div class="student-avatar-badge student-avatar-badge--mint">서</div>
-            <div class="student-device-card">
-              <span>함께 주문</span>
-              <strong>채팅 · 정산</strong>
-            </div>
+          <div class="onboarding-photo-frame">
+            <img class="onboarding-photo" src="./images/onboarding-campus.png" alt="팟메이트 대학생 온보딩 목업">
           </div>
           <div class="hero-spotlight-card">
             <strong>${spotlight.title}</strong>
@@ -334,7 +328,8 @@ function renderOnboarding() {
   `;
 }
 
-function renderHome() {
+function renderHome(options = {}) {
+  const animate = options.animate !== false;
   const sections = core.buildHomeSections(state.pots, {
     category: state.selectedCategory,
     query: state.query,
@@ -347,7 +342,7 @@ function renderHome() {
   const spotlight = heroSpotlightText(spotlightPot);
 
   app.innerHTML = `
-    <section class="screen screen-enter">
+    <section class="screen ${animate ? 'screen-enter' : ''}">
       <header class="topbar topbar--hub">
         <span class="location-pill">현재 위치 · ${state.user.locationLabel}</span>
         <span class="status-pill">${won(state.pointBalance)}</span>
@@ -976,13 +971,13 @@ app.addEventListener('change', (event) => {
 
   if (event.target.id === 'radius-filter') {
     state.radiusFilter = Number(event.target.value || 500);
-    renderHome();
+    renderHome({ animate: false });
     return;
   }
 
   if (event.target.id === 'sort-filter') {
     state.sortMode = event.target.value;
-    renderHome();
+    renderHome({ animate: false });
   }
 });
 
@@ -990,7 +985,7 @@ app.addEventListener('click', (event) => {
   const categoryButton = event.target.closest('[data-category]');
   if (!categoryButton) return;
   state.selectedCategory = categoryButton.dataset.category;
-  renderHome();
+  renderHome({ animate: false });
 });
 
 app.addEventListener('submit', (event) => {

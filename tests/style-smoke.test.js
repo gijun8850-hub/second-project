@@ -12,6 +12,8 @@ test('style.css defines the PotMate palette, glossy cards, and richer balanced-d
     '.student-chip-row',
     '.student-chip',
     '.onboarding-hero-visual',
+    '.onboarding-photo-frame',
+    '.onboarding-photo',
     '.hero-stat-card',
     '.hero-spotlight-card',
     '.home-hero-note',
