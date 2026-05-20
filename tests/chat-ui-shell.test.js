@@ -34,18 +34,20 @@ test('chat renderer keeps profile rows, host badge, own-message alignment, and s
   });
 });
 
-test('app shell exposes the student-first onboarding copy and IME-friendly search handling', () => {
+test('onboarding exposes scene cards, category shortcuts, login flow, and IME-friendly search handling', () => {
   [
-    '근처 팟, 바로 합류',
-    '캠퍼스 N빵을 더 쉽고 빠르게',
     'onboarding-screen--scene',
     'onboarding-scene-layer',
     'onboarding-header',
     'onboarding-photo-card',
     'onboarding-photo',
     'onboarding-action-card',
-    '어떤 팟을 찾고 있나요?',
-    'onboarding-login-note',
+    'data-onboarding-category',
+    'onboarding-login-link',
+    'renderLogin',
+    'login-form',
+    'login-id',
+    'login-password',
     'isSearchComposing',
     'compositionstart',
     'compositionend',

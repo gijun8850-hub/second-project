@@ -434,13 +434,39 @@ function renderOnboarding() {
         <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
         <div class="onboarding-chip-row">
           ${createCategories.map((category, index) => `
-            <span class="onboarding-chip ${index === 0 ? 'is-active' : ''}">${category}</span>
+            <button type="button" class="onboarding-chip onboarding-chip-button ${index === 0 ? 'is-active' : ''}" data-onboarding-category="${category}">${category}</button>
           `).join('')}
         </div>
       </div>
 
       <button class="gradient-button full-button onboarding-start-button" type="button" data-route="home">바로 시작하기</button>
-      <p class="onboarding-login-note">이미 계정이 있으신가요? <span>로그인</span></p>
+      <p class="onboarding-login-note">이미 계정이 있으신가요? <button type="button" class="onboarding-login-link" data-route="login">로그인</button></p>
+    </section>
+  `;
+}
+
+function renderLogin() {
+  app.innerHTML = `
+    <section class="screen screen-enter">
+      ${backButton('onboarding')}
+      <div class="page-title">
+        <h1>로그인</h1>
+        <p>ID와 비밀번호를 입력하고 팟 탐색과 정산 흐름으로 바로 이어가세요.</p>
+      </div>
+
+      <div class="login-card glass-card">
+        <form id="login-form" class="form-stack login-form">
+          <label class="form-field">
+            <span>ID</span>
+            <input id="login-id" name="loginId" required placeholder="potmate_student" autocomplete="username">
+          </label>
+          <label class="form-field">
+            <span>Password</span>
+            <input id="login-password" name="password" type="password" required placeholder="비밀번호 입력" autocomplete="current-password">
+          </label>
+          <button class="gradient-button full-button" type="submit">로그인</button>
+        </form>
+      </div>
     </section>
   `;
 }
@@ -872,6 +898,9 @@ function render() {
     case 'create':
       renderCreate();
       break;
+    case 'login':
+      renderLogin();
+      break;
     default:
       renderOnboarding();
       break;
@@ -891,6 +920,13 @@ app.addEventListener('click', (event) => {
   const payButton = event.target.closest('[data-pay-settlement]');
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
+  const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
+
+  if (onboardingCategoryButton) {
+    state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
+    setRoute('home');
+    return;
+  }
 
   if (joinButton) {
     event.stopPropagation();
@@ -1052,6 +1088,15 @@ app.addEventListener('click', (event) => {
 });
 
 app.addEventListener('submit', (event) => {
+  if (event.target.id === 'login-form') {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const loginId = String(formData.get('loginId') || '').trim();
+    showToast(`${loginId || 'PotMate'} 계정으로 로그인했어요.`);
+    setRoute('home');
+    return;
+  }
+
   if (event.target.id !== 'create-form') return;
   event.preventDefault();
 
