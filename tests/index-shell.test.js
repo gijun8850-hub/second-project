@@ -19,6 +19,6 @@ test('index.html exposes the PotMate mobile webapp mount points', () => {
   assert.doesNotMatch(html, /planner\.js/);
 });
 
-test('student onboarding image asset exists for the live entry screen', () => {
-  assert.equal(fs.existsSync('images/onboarding-campus.png'), true);
+test('student onboarding mockup asset exists for the live entry screen', () => {
+  assert.equal(fs.existsSync('images/onboarding-mockup.png'), true);
 });
