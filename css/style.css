@@ -109,27 +109,25 @@ em {
     linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.58) 17%, rgba(255, 255, 255, 0.14) 36%, rgba(250, 240, 255, 0.18) 58%, rgba(247, 231, 254, 0.84) 100%);
 }
 
-.onboarding-screen--scene::before,
-.onboarding-screen--scene::after {
-  content: "";
+.onboarding-scene-layer,
+.onboarding-screen--scene::before {
   position: absolute;
   inset: 0;
-  pointer-events: none;
 }
 
-.onboarding-screen--scene::before {
+.onboarding-scene-layer {
   z-index: 0;
-  background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 20%, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.06) 60%, rgba(247, 233, 253, 0.48) 84%, rgba(245, 227, 252, 0.82) 100%),
-    var(--onboarding-scene);
   background-repeat: no-repeat;
   background-position: center top;
   background-size: 112% auto;
   transform: scale(1.02);
+  pointer-events: none;
 }
 
-.onboarding-screen--scene::after {
+.onboarding-screen--scene::before {
+  content: "";
   z-index: 0;
+  pointer-events: none;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.44) 16%, rgba(255, 255, 255, 0.08) 31%, rgba(255, 255, 255, 0) 43%, rgba(255, 255, 255, 0.04) 56%, rgba(247, 236, 253, 0.38) 74%, rgba(247, 236, 253, 0.92) 100%);
 }

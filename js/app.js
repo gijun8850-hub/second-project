@@ -386,7 +386,8 @@ function categoryFields(category) {
 
 function renderOnboarding() {
   app.innerHTML = `
-    <section class="onboarding-screen onboarding-screen--scene screen-enter" style="--onboarding-scene: url('./images/onboarding-campus.png');">
+    <section class="onboarding-screen onboarding-screen--scene screen-enter">
+      <div class="onboarding-scene-layer" aria-hidden="true" style="background-image: url('./images/onboarding-campus.png');"></div>
       <div class="onboarding-header">
         <div class="onboarding-brand">
           <span class="brand-icon">P</span>

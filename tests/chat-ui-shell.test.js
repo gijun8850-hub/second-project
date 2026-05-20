@@ -39,7 +39,7 @@ test('app shell exposes the student-first onboarding copy and IME-friendly searc
     '근처 팟, 바로 합류',
     '캠퍼스 N빵을 더 쉽고 빠르게',
     'onboarding-screen--scene',
-    '--onboarding-scene',
+    'onboarding-scene-layer',
     'onboarding-header',
     'onboarding-photo-card',
     'onboarding-photo',
