@@ -408,19 +408,6 @@ function renderOnboarding() {
         <div class="onboarding-photo"></div>
       </div>
 
-      <div class="onboarding-card-stack">
-        <button type="button" class="onboarding-action-card onboarding-action-card--spotlight" data-onboarding-recommendation="recommended">
-          <div class="onboarding-action-icon onboarding-action-icon--pin">
-            <span>1</span>
-          </div>
-          <div class="onboarding-action-copy">
-            <strong>근처 팟 추천</strong>
-            <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
-          </div>
-          <span class="onboarding-action-arrow">›</span>
-        </button>
-      </div>
-
       <div class="onboarding-chip-block">
         <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
         <div class="onboarding-chip-row">
@@ -912,18 +899,9 @@ app.addEventListener('click', (event) => {
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
   const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
-  const onboardingRecommendationButton = event.target.closest('[data-onboarding-recommendation]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
-    setRoute('home');
-    return;
-  }
-
-  if (onboardingRecommendationButton) {
-    state.selectedCategory = categories[0];
-    state.query = '';
-    state.sortMode = 'distance';
     setRoute('home');
     return;
   }

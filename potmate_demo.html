@@ -111,9 +111,7 @@ em {
 
 .onboarding-screen--scene {
   background:
-    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.38), transparent 11rem),
-    radial-gradient(circle at 84% 10%, rgba(231, 198, 250, 0.26), transparent 12rem),
-    linear-gradient(180deg, rgba(250, 242, 255, 0.74) 0%, rgba(249, 240, 254, 0.74) 100%);
+    linear-gradient(180deg, rgba(247, 239, 252, 0.92) 0%, rgba(247, 239, 252, 0.92) 100%);
 }
 
 .onboarding-scene-layer,
@@ -128,6 +126,7 @@ em {
   background-position: center top;
   background-size: 112% auto;
   transform: scale(1.02);
+  filter: saturate(0.94) brightness(0.84);
   pointer-events: none;
 }
 
@@ -136,12 +135,11 @@ em {
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(251, 244, 255, 0.46) 0%, rgba(251, 244, 255, 0.42) 100%);
+    linear-gradient(180deg, rgba(251, 244, 255, 0.52) 0%, rgba(251, 244, 255, 0.52) 100%);
 }
 
 .onboarding-header,
-.onboarding-brand,
-.onboarding-action-card {
+.onboarding-brand {
   display: flex;
   align-items: center;
 }
@@ -219,120 +217,7 @@ em {
 .onboarding-photo {
   width: 100%;
   height: 100%;
-  background:
-    linear-gradient(180deg, rgba(250, 242, 255, 0.22) 0%, rgba(250, 242, 255, 0.22) 100%);
-}
-
-.onboarding-card-stack {
-  display: grid;
-  gap: 14px;
-  margin-top: 0;
-}
-
-.onboarding-action-card {
-  gap: 14px;
-  padding: 18px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.58);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.42);
-  box-shadow: 0 18px 40px rgba(82, 19, 114, 0.1);
-  backdrop-filter: blur(18px) saturate(1.08);
-}
-
-.onboarding-action-card--spotlight {
-  position: relative;
-  width: 100%;
-  text-align: left;
-  border: 1.4px solid rgba(255, 255, 255, 0.82);
-  border-radius: 999px;
   background: transparent;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.64),
-    0 16px 30px rgba(82, 19, 114, 0.08);
-  backdrop-filter: none;
-}
-
-.onboarding-action-card--spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: transparent;
-  pointer-events: none;
-}
-
-.onboarding-action-icon {
-  position: relative;
-  display: grid;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
-  place-items: center;
-  border-radius: 50%;
-  color: #a220e4;
-  background: linear-gradient(180deg, #fff 0%, #f8eaff 100%);
-  box-shadow: inset 0 0 0 1px rgba(239, 216, 248, 0.95);
-  font-size: 26px;
-  font-weight: 900;
-}
-
-.onboarding-action-icon--pin span {
-  position: relative;
-  top: -1px;
-}
-
-.onboarding-action-icon--pin::after {
-  content: "1";
-  position: absolute;
-  top: -6px;
-  right: -4px;
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 50%;
-  color: #fff;
-  background: var(--gradient-main);
-  box-shadow: 0 10px 22px rgba(170, 1, 231, 0.24);
-  font-size: 13px;
-}
-
-.onboarding-action-copy {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.onboarding-action-copy strong {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 15px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.onboarding-action-copy p {
-  margin: 0;
-  color: #fff;
-  font-size: 13px;
-  line-height: 1.4;
-  font-weight: 700;
-  mix-blend-mode: difference;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.onboarding-action-copy em {
-  color: inherit;
-  font-weight: 900;
-}
-
-.onboarding-action-arrow {
-  color: #a38ab4;
-  font-size: 32px;
-  line-height: 1;
 }
 
 .onboarding-chip-block {
@@ -2429,19 +2314,6 @@ function renderOnboarding() {
         <div class="onboarding-photo"></div>
       </div>
 
-      <div class="onboarding-card-stack">
-        <button type="button" class="onboarding-action-card onboarding-action-card--spotlight" data-onboarding-recommendation="recommended">
-          <div class="onboarding-action-icon onboarding-action-icon--pin">
-            <span>1</span>
-          </div>
-          <div class="onboarding-action-copy">
-            <strong>근처 팟 추천</strong>
-            <p>가천대 180m · 마라탕 · <em>1명 남음</em></p>
-          </div>
-          <span class="onboarding-action-arrow">›</span>
-        </button>
-      </div>
-
       <div class="onboarding-chip-block">
         <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
         <div class="onboarding-chip-row">
@@ -2933,18 +2805,9 @@ app.addEventListener('click', (event) => {
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
   const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
-  const onboardingRecommendationButton = event.target.closest('[data-onboarding-recommendation]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
-    setRoute('home');
-    return;
-  }
-
-  if (onboardingRecommendationButton) {
-    state.selectedCategory = categories[0];
-    state.query = '';
-    state.sortMode = 'distance';
     setRoute('home');
     return;
   }

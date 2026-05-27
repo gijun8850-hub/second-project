@@ -41,9 +41,6 @@ test('onboarding exposes scene cards, category shortcuts, login flow, and IME-fr
     'onboarding-header',
     'onboarding-photo-card',
     'onboarding-photo',
-    'onboarding-action-card',
-    'onboarding-action-card--spotlight',
-    'data-onboarding-recommendation',
     'data-onboarding-category',
     'onboarding-login-link',
     'renderLogin',
@@ -57,6 +54,9 @@ test('onboarding exposes scene cards, category shortcuts, login flow, and IME-fr
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
+
+  assert.doesNotMatch(app, /data-onboarding-recommendation/);
+  assert.doesNotMatch(app, /onboarding-action-card--spotlight/);
 });
 
 test('home cards expose compact CTA sizing tokens for join and chat actions', () => {
