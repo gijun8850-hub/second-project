@@ -12,9 +12,40 @@ function loadSeed() {
   return sandbox.window.PotMateSeed;
 }
 
+function buildVerificationSummary(verification) {
+  if (verification && verification.status === 'verified' && verification.method === 'naver_student_id' && !verification.skipped) {
+    return {
+      badge: '네이버 학생증 인증 완료',
+      headline: '검증된 캠퍼스 메이트',
+      helper: '같은 학교 학생만 더 안전하게 연결할 수 있어요.'
+    };
+  }
+
+  if (verification && verification.status === 'verified' && verification.method === 'school_email' && !verification.skipped) {
+    return {
+      badge: '학교 이메일 인증 완료',
+      headline: '인증된 캠퍼스 메이트',
+      helper: '학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요.'
+    };
+  }
+
+  if (verification && verification.skipped) {
+    return {
+      badge: '인증은 나중에',
+      headline: '둘러보기 모드로 시작했어요',
+      helper: '원할 때 학생 인증을 마치고 더 안전한 거래 보호를 받을 수 있어요.'
+    };
+  }
+
+  return {
+    badge: '학생 인증 전',
+    headline: '캠퍼스 메이트 인증 필요',
+    helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
+  };
+}
+
 function createHarness() {
   const listeners = new Map();
-  let exposedState = null;
   const app = {
     innerHTML: '',
     addEventListener(type, handler) {
@@ -39,9 +70,6 @@ function createHarness() {
   };
   const window = {
     PotMateSeed: loadSeed(),
-    __PotMateExposeState(nextState) {
-      exposedState = JSON.parse(JSON.stringify(nextState));
-    },
     PotMateCore: {
       formatWon(amount) {
         return `${amount}`;
@@ -55,6 +83,7 @@ function createHarness() {
           categorySpotlights: []
         };
       },
+      buildVerificationSummary,
       canJoinPot() {
         return { ok: true };
       },
@@ -126,9 +155,6 @@ function createHarness() {
   return {
     app,
     toast,
-    readState() {
-      return exposedState;
-    },
     dispatchClick(map) {
       dispatch('click', {
         target: closestMapTarget(map),
@@ -193,6 +219,14 @@ function reachVerification(harness) {
   assert.equal(prevented, true);
   assert.match(harness.app.innerHTML, /data-verify-method="naver_student_id"/);
   return harness;
+}
+
+function revisitRoute(harness, route) {
+  harness.dispatchClick({
+    '[data-route]': {
+      dataset: { route }
+    }
+  });
 }
 
 test('app shell exposes home hub and control tokens', () => {
@@ -260,7 +294,7 @@ test('entry flow source keeps one onboarding renderer and SPA signup submit hand
   assert.doesNotMatch(appSource, /onboarding-login-link/);
 });
 
-test('auth shell exposes login signup tabs, realistic account controls, and trust reminders', () => {
+test('auth shell exposes login signup tabs, realistic account controls, trust reminders, and no test seam hooks', () => {
   [
     'renderAuth',
     'auth-tabs',
@@ -273,10 +307,14 @@ test('auth shell exposes login signup tabs, realistic account controls, and trus
     '카카오로 시작하기',
     '검증된 캠퍼스 메이트',
     '에스크로 안전 정산',
-    '네이버페이 포인트 적립'
+    '네이버페이 포인트 적립',
+    'buildVerificationSummary'
   ].forEach((token) => {
     assert.ok(appSource.includes(token), `Missing token: ${token}`);
   });
+
+  assert.doesNotMatch(appSource, /__PotMateExposeState/);
+  assert.doesNotMatch(appSource, /syncStateSnapshot/);
 });
 
 test('verification flow source exposes dedicated route tokens and simulated options', () => {
@@ -319,6 +357,8 @@ test('runtime harness surfaces trust reminders on auth entry', () => {
   openAuthEntry(harness);
 
   [
+    '캠퍼스 메이트 인증 필요',
+    '학생 인증 전',
     '검증된 캠퍼스 메이트',
     '에스크로 안전 정산',
     '네이버페이 포인트 적립'
@@ -353,7 +393,7 @@ test('runtime harness routes successful signup into the verification screen', ()
   assert.match(harness.app.innerHTML, /data-skip-verification/);
 });
 
-test('runtime harness completes simulated Naver student ID verification and routes home', () => {
+test('runtime harness completes simulated Naver student ID verification and shows verified revisit UI', () => {
   const harness = createHarness();
 
   reachVerification(harness);
@@ -365,14 +405,21 @@ test('runtime harness completes simulated Naver student ID verification and rout
 
   assert.match(harness.app.innerHTML, /hub-highlight/);
   assert.match(harness.toast.textContent, /네이버 학생증/);
-  assert.deepEqual(harness.readState().verification, {
-    status: 'verified',
-    method: 'naver_student_id',
-    skipped: false
-  });
+
+  revisitRoute(harness, 'auth');
+  assert.match(harness.app.innerHTML, /네이버 학생증 인증 완료/);
+  assert.match(harness.app.innerHTML, /검증된 캠퍼스 메이트/);
+  assert.match(harness.app.innerHTML, /같은 학교 학생만 더 안전하게 연결할 수 있어요/);
+  assert.doesNotMatch(harness.app.innerHTML, /캠퍼스 메이트 인증 필요/);
+
+  revisitRoute(harness, 'verification');
+  assert.match(harness.app.innerHTML, /이미 학생 인증을 마쳤어요/);
+  assert.match(harness.app.innerHTML, /현재 인증 상태/);
+  assert.match(harness.app.innerHTML, /네이버 학생증 인증 완료/);
+  assert.doesNotMatch(harness.app.innerHTML, /학생 인증 방식 선택/);
 });
 
-test('runtime harness completes simulated school email verification and routes home', () => {
+test('runtime harness completes simulated school email verification and shows verified revisit UI', () => {
   const harness = createHarness();
 
   reachVerification(harness);
@@ -384,14 +431,20 @@ test('runtime harness completes simulated school email verification and routes h
 
   assert.match(harness.app.innerHTML, /hub-highlight/);
   assert.match(harness.toast.textContent, /학교 이메일/);
-  assert.deepEqual(harness.readState().verification, {
-    status: 'verified',
-    method: 'school_email',
-    skipped: false
-  });
+
+  revisitRoute(harness, 'auth');
+  assert.match(harness.app.innerHTML, /학교 이메일 인증 완료/);
+  assert.match(harness.app.innerHTML, /인증된 캠퍼스 메이트/);
+  assert.match(harness.app.innerHTML, /학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요/);
+  assert.doesNotMatch(harness.app.innerHTML, /캠퍼스 메이트 인증 필요/);
+
+  revisitRoute(harness, 'verification');
+  assert.match(harness.app.innerHTML, /이미 학생 인증을 마쳤어요/);
+  assert.match(harness.app.innerHTML, /학교 이메일 인증 완료/);
+  assert.doesNotMatch(harness.app.innerHTML, /학생 인증 방식 선택/);
 });
 
-test('runtime harness allows skipping optional student verification and routes home', () => {
+test('runtime harness allows skipping optional student verification and shows skipped revisit UI', () => {
   const harness = createHarness();
 
   reachVerification(harness);
@@ -403,9 +456,17 @@ test('runtime harness allows skipping optional student verification and routes h
 
   assert.match(harness.app.innerHTML, /hub-highlight/);
   assert.match(harness.toast.textContent, /나중에/);
-  assert.deepEqual(harness.readState().verification, {
-    status: 'skipped',
-    method: null,
-    skipped: true
-  });
+
+  revisitRoute(harness, 'auth');
+  assert.match(harness.app.innerHTML, /인증은 나중에/);
+  assert.match(harness.app.innerHTML, /둘러보기 모드로 시작했어요/);
+  assert.match(harness.app.innerHTML, /원할 때 학생 인증을 마치고 더 안전한 거래 보호를 받을 수 있어요/);
+  assert.doesNotMatch(harness.app.innerHTML, /캠퍼스 메이트 인증 필요/);
+
+  revisitRoute(harness, 'verification');
+  assert.match(harness.app.innerHTML, /학생 인증은 나중에 이어갈 수 있어요/);
+  assert.match(harness.app.innerHTML, /인증은 나중에/);
+  assert.match(harness.app.innerHTML, /data-verify-method="naver_student_id"/);
+  assert.match(harness.app.innerHTML, /data-verify-method="school_email"/);
+  assert.doesNotMatch(harness.app.innerHTML, /이미 학생 인증을 마쳤어요/);
 });

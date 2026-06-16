@@ -193,10 +193,28 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove('is-visible'), 2200);
 }
 
-function syncStateSnapshot() {
-  if (typeof window.__PotMateExposeState === 'function') {
-    window.__PotMateExposeState(state);
+function verificationSummary() {
+  if (typeof core.buildVerificationSummary === 'function') {
+    return core.buildVerificationSummary(state.verification);
   }
+
+  return {
+    badge: '학생 인증 전',
+    headline: '캠퍼스 메이트 인증 필요',
+    helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
+  };
+}
+
+function verificationMethodLabel() {
+  if (state.verification && state.verification.method === 'naver_student_id') {
+    return '네이버 학생증 인증 완료';
+  }
+
+  if (state.verification && state.verification.method === 'school_email') {
+    return '학교 이메일 인증 완료';
+  }
+
+  return '학생 인증 전';
 }
 
 function nav(active) {
@@ -450,17 +468,23 @@ function renderSignupPanel() {
 }
 
 function renderTrustReminder() {
+  const summary = verificationSummary();
+  const trustItems = [
+    summary.badge,
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ].filter((item, index, all) => all.indexOf(item) === index);
+
   return `
     <article class="glass-card">
       <div class="section-heading">
-        <h2>같은 학교 메이트와 더 안심하고 시작</h2>
-        <span>선택형 학생 인증</span>
+        <h2>${summary.headline}</h2>
+        <span>${summary.badge}</span>
       </div>
-      <p>검증된 캠퍼스 메이트를 중심으로 만나고, 에스크로 안전 정산과 네이버페이 포인트 적립 흐름까지 한 번에 이어져요.</p>
+      <p>${summary.helper} 에스크로 안전 정산과 네이버페이 포인트 적립 안내도 함께 확인할 수 있어요.</p>
       <div class="trust-row">
-        <span class="trust-badge">검증된 캠퍼스 메이트</span>
-        <span class="trust-badge">에스크로 안전 정산</span>
-        <span class="trust-badge">네이버페이 포인트 적립</span>
+        ${trustItems.map((item) => `<span class="trust-badge">${item}</span>`).join('')}
       </div>
     </article>
   `;
@@ -484,22 +508,56 @@ function renderAuth() {
 }
 
 function renderVerification() {
+  const summary = verificationSummary();
+  const isVerified = Boolean(state.verification && state.verification.status === 'verified' && !state.verification.skipped);
+  const isSkipped = Boolean(state.verification && state.verification.skipped);
+  const methodLabel = verificationMethodLabel();
+
+  if (isVerified) {
+    app.innerHTML = `
+      <section class="screen screen-enter auth-screen verification-screen">
+        ${backButton('auth')}
+
+        <div class="page-title">
+          <h1>이미 학생 인증을 마쳤어요</h1>
+          <p>${methodLabel} 상태로 같은 학교 메이트 참여 준비가 끝났어요.</p>
+        </div>
+
+        ${renderTrustReminder()}
+
+        <div class="login-card glass-card">
+          <div class="section-heading">
+            <h2>현재 인증 상태</h2>
+            <span>${summary.badge}</span>
+          </div>
+          <div class="info-row"><span>신뢰 상태</span><strong>${summary.headline}</strong></div>
+          <div class="info-row"><span>인증 방식</span><strong>${methodLabel}</strong></div>
+          <button class="gradient-button full-button" type="button" data-route="home">홈으로 돌아가기</button>
+        </div>
+      </section>
+    `;
+    return;
+  }
+
   app.innerHTML = `
     <section class="screen screen-enter auth-screen verification-screen">
       ${backButton('auth')}
 
       <div class="page-title">
-        <h1>검증된 캠퍼스 메이트로 이어지는 학생 인증</h1>
-        <p>같은 학교 참여를 더 안심하게 만드는 선택 단계예요. 실제 연동 없이 UX만 먼저 보여드려요.</p>
+        <h1>${isSkipped ? '학생 인증은 나중에 이어갈 수 있어요' : '검증된 캠퍼스 메이트로 이어지는 학생 인증'}</h1>
+        <p>${isSkipped
+          ? `${summary.helper} 지금 인증하면 같은 학교 참여 신뢰를 더 빠르게 보여줄 수 있어요.`
+          : '같은 학교 참여를 더 안심하게 만드는 선택 단계예요. 실제 연동 없이 UX만 먼저 보여드려요.'}</p>
       </div>
 
       ${renderTrustReminder()}
 
       <div class="login-card glass-card">
         <div class="section-heading">
-          <h2>학생 인증 방식 선택</h2>
-          <span>완료 후 바로 홈으로 이동</span>
+          <h2>${isSkipped ? '원할 때 바로 학생 인증' : '학생 인증 방식 선택'}</h2>
+          <span>${isSkipped ? summary.badge : '완료 후 바로 홈으로 이동'}</span>
         </div>
+        ${isSkipped ? `<div class="info-row"><span>현재 상태</span><strong>${summary.headline}</strong></div>` : ''}
         <div class="info-row"><span>우선 추천</span><strong>네이버 학생증 인증</strong></div>
         <div class="info-row"><span>대안 방법</span><strong>학교 이메일 확인</strong></div>
         <button class="gradient-button full-button" type="button" data-verify-method="naver_student_id">네이버 학생증으로 인증하기</button>
@@ -991,8 +1049,6 @@ function render() {
       renderOnboarding();
       break;
   }
-
-  syncStateSnapshot();
 }
 
 app.addEventListener('click', (event) => {
