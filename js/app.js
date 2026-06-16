@@ -193,6 +193,12 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove('is-visible'), 2200);
 }
 
+function syncStateSnapshot() {
+  if (typeof window.__PotMateExposeState === 'function') {
+    window.__PotMateExposeState(state);
+  }
+}
+
 function nav(active) {
   return `
     <nav class="bottom-nav">
@@ -985,6 +991,8 @@ function render() {
       renderOnboarding();
       break;
   }
+
+  syncStateSnapshot();
 }
 
 app.addEventListener('click', (event) => {
@@ -1035,12 +1043,14 @@ app.addEventListener('click', (event) => {
     const method = verifyMethodButton.dataset.verifyMethod;
 
     if (method === 'naver_student_id') {
+      state.verification = { status: 'verified', method: 'naver_student_id', skipped: false };
       showToast('네이버 학생증 인증이 완료됐어요. 검증된 캠퍼스 메이트와 안심하고 시작해 보세요.');
       setRoute('home');
       return;
     }
 
     if (method === 'school_email') {
+      state.verification = { status: 'verified', method: 'school_email', skipped: false };
       showToast('학교 이메일 확인이 완료됐어요. 검증된 캠퍼스 메이트와 안심하고 시작해 보세요.');
       setRoute('home');
       return;
@@ -1048,6 +1058,7 @@ app.addEventListener('click', (event) => {
   }
 
   if (skipVerificationButton) {
+    state.verification = { status: 'skipped', method: null, skipped: true };
     showToast('학생 인증은 나중에 해도 괜찮아요. 먼저 홈에서 팟을 둘러보세요.');
     setRoute('home');
     return;

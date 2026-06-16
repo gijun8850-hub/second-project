@@ -14,6 +14,7 @@ function loadSeed() {
 
 function createHarness() {
   const listeners = new Map();
+  let exposedState = null;
   const app = {
     innerHTML: '',
     addEventListener(type, handler) {
@@ -38,6 +39,9 @@ function createHarness() {
   };
   const window = {
     PotMateSeed: loadSeed(),
+    __PotMateExposeState(nextState) {
+      exposedState = JSON.parse(JSON.stringify(nextState));
+    },
     PotMateCore: {
       formatWon(amount) {
         return `${amount}`;
@@ -122,6 +126,9 @@ function createHarness() {
   return {
     app,
     toast,
+    readState() {
+      return exposedState;
+    },
     dispatchClick(map) {
       dispatch('click', {
         target: closestMapTarget(map),
@@ -358,6 +365,11 @@ test('runtime harness completes simulated Naver student ID verification and rout
 
   assert.match(harness.app.innerHTML, /hub-highlight/);
   assert.match(harness.toast.textContent, /네이버 학생증/);
+  assert.deepEqual(harness.readState().verification, {
+    status: 'verified',
+    method: 'naver_student_id',
+    skipped: false
+  });
 });
 
 test('runtime harness completes simulated school email verification and routes home', () => {
@@ -372,6 +384,11 @@ test('runtime harness completes simulated school email verification and routes h
 
   assert.match(harness.app.innerHTML, /hub-highlight/);
   assert.match(harness.toast.textContent, /학교 이메일/);
+  assert.deepEqual(harness.readState().verification, {
+    status: 'verified',
+    method: 'school_email',
+    skipped: false
+  });
 });
 
 test('runtime harness allows skipping optional student verification and routes home', () => {
@@ -386,4 +403,9 @@ test('runtime harness allows skipping optional student verification and routes h
 
   assert.match(harness.app.innerHTML, /hub-highlight/);
   assert.match(harness.toast.textContent, /나중에/);
+  assert.deepEqual(harness.readState().verification, {
+    status: 'skipped',
+    method: null,
+    skipped: true
+  });
 });
