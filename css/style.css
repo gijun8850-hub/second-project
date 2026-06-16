@@ -327,6 +327,10 @@ em {
   margin-top: 18px;
 }
 
+.onboarding-support-row {
+  margin-top: -6px;
+}
+
 .student-chip {
   display: inline-flex;
   align-items: center;
@@ -520,6 +524,18 @@ em {
   border-radius: 30px;
   background: var(--gradient-hub);
   box-shadow: var(--shadow-card);
+}
+
+.home-trust-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+  backdrop-filter: blur(14px);
+}
+
+.home-trust-panel .ghost-button {
+  justify-self: start;
 }
 
 .hub-highlight__label {

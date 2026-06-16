@@ -334,6 +334,10 @@ em {
   margin-top: 18px;
 }
 
+.onboarding-support-row {
+  margin-top: -6px;
+}
+
 .student-chip {
   display: inline-flex;
   align-items: center;
@@ -527,6 +531,18 @@ em {
   border-radius: 30px;
   background: var(--gradient-hub);
   box-shadow: var(--shadow-card);
+}
+
+.home-trust-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+  backdrop-filter: blur(14px);
+}
+
+.home-trust-panel .ghost-button {
+  justify-self: start;
 }
 
 .hub-highlight__label {
@@ -1209,6 +1225,37 @@ em {
   <script>
 /* js/potmate-data.js */
 window.PotMateSeed = {
+  hasSeenOnboarding: false,
+  onboardingIndex: 0,
+  authMode: 'login',
+  verification: {
+    status: 'unverified',
+    method: null,
+    skipped: false
+  },
+  onboardingSlides: [
+    {
+      title: '같이 N빵할 사람 구해요',
+      description: '배달, 택시, 구독까지 캠퍼스 메이트와 함께 나누고 더 가볍게 이용하세요.',
+      graphic: 'categories'
+    },
+    {
+      title: '근처 대학생과 쉽고 빠르게',
+      description: '위치 기반 매칭으로 내 주변 대학생들과 안전하게 연결됩니다.',
+      graphic: 'campus-map'
+    },
+    {
+      title: '모집부터 정산까지 한 번에',
+      description: '채팅, 정산, 네이버페이 결제까지 앱 안에서 모두 해결하세요.',
+      graphic: 'recruit-chat-pay'
+    }
+  ],
+  trustHighlights: [
+    '네이버 학생증 인증 완료',
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ],
   user: {
     id: 'me',
     name: '민아',
@@ -1452,7 +1499,42 @@ window.PotMateSeed = {
     '기타팟': { joinRadiusMeters: 500, subCategory: '공동구매' }
   };
 
-  const SETTLEMENT_STAGES = ['정산 대기', '정산 요청됨', '정산 완료'];
+  const SETTLEMENT_STAGES = ['참여자 결제', '금액 보관', '서비스 이용 완료', '방장 정산 완료'];
+  const SETTLEMENT_STAGE_INDEX = {
+    '정산 대기': 0,
+    '참여자 결제': 0,
+    participant_payment: 0,
+    '정산 요청됨': 1,
+    funds_held: 1,
+    '금액 보관': 1,
+    service_complete: 2,
+    '서비스 이용 완료': 2,
+    '정산 완료': 3,
+    host_settled: 3,
+    payout_complete: 3,
+    '방장 정산 완료': 3
+  };
+  const ESCROW_STAGE_BY_SETTLEMENT_STAGE = {
+    '정산 대기': 'participant_payment',
+    '정산 요청됨': 'funds_held',
+    '정산 완료': 'host_settled',
+    '참여자 결제': 'participant_payment',
+    '금액 보관': 'funds_held',
+    '서비스 이용 완료': 'service_complete',
+    '방장 정산 완료': 'host_settled'
+  };
+
+  SETTLEMENT_STAGE_INDEX['정산 요청됨'] = 0;
+  ESCROW_STAGE_BY_SETTLEMENT_STAGE['정산 요청됨'] = 'participant_payment';
+
+  const SETTLEMENT_STAGE_BY_ESCROW_STAGE = {
+    participant_payment: '참여자 결제',
+    funds_held: '금액 보관',
+    service_complete: '서비스 이용 완료',
+    host_settled: '방장 정산 완료'
+  };
+  const PENDING_PAYMENT_STATUSES = new Set(['정산 요청됨', '참여중', '참여자 결제', '금액 보관', '서비스 이용 완료']);
+  const COMPLETED_PAYMENT_STATUSES = new Set(['정산 완료', '방장 정산 완료', '충전 완료']);
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -1560,6 +1642,65 @@ window.PotMateSeed = {
     return base;
   }
 
+  function buildVerificationSummary(verification) {
+    if (verification && verification.status === 'verified' && verification.method === 'naver_student_id' && !verification.skipped) {
+      return {
+        badge: '네이버 학생증 인증 완료',
+        headline: '검증된 캠퍼스 메이트',
+        helper: '같은 학교 학생만 더 안전하게 연결할 수 있어요.'
+      };
+    }
+
+    if (verification && verification.status === 'verified' && verification.method === 'school_email' && !verification.skipped) {
+      return {
+        badge: '학교 이메일 인증 완료',
+        headline: '검증된 캠퍼스 메이트',
+        helper: '같은 학교 학생만 참여할 수 있어요. 학교 이메일 확인으로 참여 신뢰를 보여줘요.'
+      };
+    }
+
+    if (verification && verification.skipped) {
+      return {
+        badge: '인증은 나중에',
+        headline: '둘러보기 모드로 시작했어요',
+        helper: '원할 때 학생 인증을 마치고 더 안전한 거래 보호를 받을 수 있어요.'
+      };
+    }
+
+    return {
+      badge: '학생 인증 전',
+      headline: '캠퍼스 메이트 인증 필요',
+      helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
+    };
+  }
+
+  function normalizeEscrowStage(stageOrEscrow) {
+    if (ESCROW_STAGE_BY_SETTLEMENT_STAGE[stageOrEscrow]) return ESCROW_STAGE_BY_SETTLEMENT_STAGE[stageOrEscrow];
+    return stageOrEscrow || 'participant_payment';
+  }
+
+  function settlementStageFromEscrowStage(escrowStage) {
+    return SETTLEMENT_STAGE_BY_ESCROW_STAGE[normalizeEscrowStage(escrowStage)] || SETTLEMENT_STAGE_BY_ESCROW_STAGE.participant_payment;
+  }
+
+  function syncSettlementStatus(next, potId, status) {
+    next.settlements = (next.settlements || []).map((item) => (
+      item.potId === potId
+        ? { ...item, status }
+        : item
+    ));
+  }
+
+  function appendSystemMessage(next, pot, text) {
+    next.chats = next.chats || {};
+    next.chats[pot.id] = ensureChat(next.chats, pot);
+    next.chats[pot.id].messages.push({
+      from: 'system',
+      type: 'system',
+      text
+    });
+  }
+
   function buildDetail(category, input) {
     const detail = {};
     (CATEGORY_FIELDS[category] || []).forEach((field) => {
@@ -1623,6 +1764,7 @@ window.PotMateSeed = {
       deadlineLabel: input.deadlineLabel || input.deadline || '오늘 22:00',
       recruitStatus: '모집중',
       settlementStage: '정산 대기',
+      escrowStage: normalizeEscrowStage(input.escrowStage || input.settlementStage || 'participant_payment'),
       urgencyLabel: input.urgencyLabel || '모집 새로 시작',
       urgencyRank: Number(input.urgencyRank || 3),
       trustBadges: buildTrustBadges(category, input),
@@ -1677,6 +1819,7 @@ window.PotMateSeed = {
 
   function updatePotStage(pot, stage) {
     pot.settlementStage = stage;
+    pot.escrowStage = normalizeEscrowStage(stage);
     pot.timeline = buildSettlementStages(stage).map((item) => ({ label: item.label, state: item.state }));
   }
 
@@ -1743,6 +1886,7 @@ window.PotMateSeed = {
       ...member,
       paid: member.id === pot.host.id
     }));
+    pot.escrowStage = 'funds_held';
     updatePotStage(pot, '정산 요청됨');
 
     next.settlements = next.settlements || [];
@@ -1862,8 +2006,138 @@ window.PotMateSeed = {
     };
   }
 
+  function requestSettlement(state, potId, totalAmount) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    const participants = pot.participants && pot.participants.length ? pot.participants : [];
+    const perPersonAmount = Math.ceil(Number(totalAmount || 0) / Math.max(participants.length, 1));
+    const participantPaymentStage = settlementStageFromEscrowStage('participant_payment');
+
+    pot.perPersonAmount = perPersonAmount;
+    pot.participants = participants.map((member) => ({
+      ...member,
+      paid: member.id === pot.host.id
+    }));
+    updatePotStage(pot, participantPaymentStage);
+
+    next.settlements = next.settlements || [];
+    next.settlements.unshift({
+      id: `settlement-${Date.now()}`,
+      potId,
+      title: pot.title,
+      amount: perPersonAmount,
+      totalAmount: Number(totalAmount || 0),
+      status: participantPaymentStage,
+      date: '방금'
+    });
+
+    next.payments = next.payments || [];
+    if (pot.participants.some((member) => member.id === next.user.id && !member.paid)) {
+      upsertPayment(next, {
+        id: `payment-${Date.now()}`,
+        potId,
+        title: pot.title,
+        category: pot.category,
+        amount: perPersonAmount,
+        status: participantPaymentStage,
+        date: '방금'
+      });
+    }
+
+    appendSystemMessage(next, pot, `정산 요청이 도착했어요. 1인당 ${formatWon(perPersonAmount)}씩 결제해 주세요.`);
+
+    return next;
+  }
+
+  function markParticipantPaid(state, potId, participantId, amount) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    let deducted = false;
+    pot.participants = (pot.participants || []).map((member) => {
+      if (member.id !== participantId) return member;
+      deducted = !member.paid;
+      return { ...member, paid: true };
+    });
+
+    const totalAmount = Number(amount || pot.perPersonAmount || 0);
+    if (participantId === next.user.id && deducted) {
+      next.pointBalance = Math.max(Number(next.pointBalance || 0) - totalAmount, 0);
+    }
+
+    const allPaid = pot.participants.length > 0 && pot.participants.every((member) => member.paid);
+    const nextStage = settlementStageFromEscrowStage(allPaid ? 'funds_held' : 'participant_payment');
+    updatePotStage(pot, nextStage);
+
+    next.payments = next.payments || [];
+    upsertPayment(next, {
+      id: `paid-${Date.now()}`,
+      potId,
+      title: pot.title,
+      category: pot.category,
+      amount: totalAmount,
+      status: nextStage,
+      date: '방금'
+    });
+
+    syncSettlementStatus(next, potId, nextStage);
+    appendSystemMessage(
+      next,
+      pot,
+      allPaid
+        ? '모든 참여자의 결제가 완료되어 금액이 에스크로로 안전하게 보관 중이에요.'
+        : '결제가 반영됐어요. 남은 참여자의 결제가 끝나면 금액이 안전하게 보관돼요.'
+    );
+
+    return next;
+  }
+
+  function advanceEscrowStage(state, potId, nextEscrowStage) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    const normalizedStage = normalizeEscrowStage(nextEscrowStage);
+    const nextStage = settlementStageFromEscrowStage(normalizedStage);
+
+    updatePotStage(pot, nextStage);
+    syncSettlementStatus(next, potId, nextStage);
+    next.payments = (next.payments || []).map((item) => (
+      item.potId === potId
+        ? { ...item, status: nextStage }
+        : item
+    ));
+
+    appendSystemMessage(
+      next,
+      pot,
+      normalizedStage === 'service_complete'
+        ? '서비스 이용이 완료되어 방장이 최종 정산을 준비하고 있어요.'
+        : '방장 정산 완료. 에스크로 보관 금액이 최종 정산까지 마무리됐어요.'
+    );
+
+    return next;
+  }
+
+  function buildWalletSections(state) {
+    const payments = clone(state.payments || []);
+    return {
+      pending: payments.filter((item) => PENDING_PAYMENT_STATUSES.has(item.status)),
+      completed: payments.filter((item) => COMPLETED_PAYMENT_STATUSES.has(item.status)),
+      recent: payments
+    };
+  }
+
   function buildSettlementStages(currentStage) {
-    const currentIndex = Math.max(SETTLEMENT_STAGES.indexOf(currentStage), 0);
+    const currentIndex = Math.max(
+      Object.prototype.hasOwnProperty.call(SETTLEMENT_STAGE_INDEX, currentStage)
+        ? SETTLEMENT_STAGE_INDEX[currentStage]
+        : 0,
+      0
+    );
     return SETTLEMENT_STAGES.map((label, index) => ({
       label,
       state: index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'pending'
@@ -1894,9 +2168,11 @@ window.PotMateSeed = {
     sendReminder,
     chargePoints,
     markParticipantPaid,
+    advanceEscrowStage,
     getPaymentHistory,
     buildWalletSections,
     buildSettlementStages,
+    buildVerificationSummary,
     sendChatMessage,
     updateRecruitmentStatus
   };
@@ -1904,7 +2180,7 @@ window.PotMateSeed = {
 
 
 /* js/app.js */
-const core = window.PotMateCore;
+﻿const core = window.PotMateCore;
 const categories = ['전체', '배달팟', '택시팟', '구독팟', '기타팟'];
 const createCategories = categories.slice(1);
 
@@ -1991,6 +2267,47 @@ function renderHomeSpotlight(sections) {
   return `
     <strong>${spotlight.title}</strong>
     <span>${spotlight.description}</span>
+  `;
+}
+
+function onboardingSupportChips(slide) {
+  const chipsByGraphic = {
+    categories: ['배달팟', '택시팟', '구독팟'],
+    'campus-map': ['위치 기반 매칭', '근처 대학생 연결', '안전 참여'],
+    'recruit-chat-pay': ['모집', '채팅', '정산', '네이버페이']
+  };
+
+  return (chipsByGraphic[slide.graphic] || []).map((item) => `<span class="student-chip">${item}</span>`).join('');
+}
+
+function renderHomeTrustPanel() {
+  const summary = verificationSummary();
+  const baseItems = Array.isArray(state.trustHighlights) ? state.trustHighlights : [
+    '네이버 학생증 인증 완료',
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ];
+  const verified = Boolean(state.verification && state.verification.status === 'verified' && !state.verification.skipped);
+  const trustItems = [
+    verified ? summary.badge : null,
+    ...baseItems.slice(1)
+  ].filter((item, index, all) => item && all.indexOf(item) === index);
+
+  return `
+    <article class="glass-card home-trust-panel">
+      <div class="section-heading">
+        <h2>${verified ? summary.headline : '안전하게 시작하는 캠퍼스 N빵'}</h2>
+        <span>${verified ? summary.badge : '학생 인증 가능'}</span>
+      </div>
+      <p>${verified
+        ? '같은 학교 학생만 참여할 수 있어요. 에스크로 안전 정산과 네이버페이 포인트 적립 흐름도 홈에서 바로 확인할 수 있어요.'
+        : '학생 인증을 마치면 같은 학교 참여 신뢰를 더 분명하게 보여줄 수 있고, 안전 정산 흐름도 더 직관적으로 확인할 수 있어요.'}</p>
+      <div class="trust-row">
+        ${trustItems.map((item) => `<span class="trust-badge">${item}</span>`).join('')}
+      </div>
+      ${verified ? '' : '<button class="ghost-button" type="button" data-route="verification">지금 학생 인증하기</button>'}
+    </article>
   `;
 }
 
@@ -2099,6 +2416,30 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove('is-visible'), 2200);
 }
 
+function verificationSummary() {
+  if (typeof core.buildVerificationSummary === 'function') {
+    return core.buildVerificationSummary(state.verification);
+  }
+
+  return {
+    badge: '학생 인증 전',
+    headline: '캠퍼스 메이트 인증 필요',
+    helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
+  };
+}
+
+function verificationMethodLabel() {
+  if (state.verification && state.verification.method === 'naver_student_id') {
+    return '네이버 학생증 인증 완료';
+  }
+
+  if (state.verification && state.verification.method === 'school_email') {
+    return '학교 이메일 인증 완료';
+  }
+
+  return '학생 인증 전';
+}
+
 function nav(active) {
   return `
     <nav class="bottom-nav">
@@ -2136,7 +2477,61 @@ function participantStrip(pot) {
   `;
 }
 
-function stageTrack(stage) {
+function settlementProgressStage(pot) {
+  if (pot && pot.escrowStage) {
+    return pot.escrowStage;
+  }
+  if (pot && pot.settlementStage === '정산 요청됨') {
+    return 'participant_payment';
+  }
+  if (pot && pot.settlementStage === '정산 완료') {
+    return 'host_settled';
+  }
+  return pot ? pot.settlementStage : 'participant_payment';
+}
+
+function escrowNotice(pot, options = {}) {
+  const stage = settlementProgressStage(pot);
+  const copy = {
+    participant_payment: {
+      title: '안전결제로 참여자 결제를 모으는 중',
+      description: '에스크로 기반 보호로 참여자 결제가 끝나면 금액이 안전하게 보관돼요.'
+    },
+    funds_held: {
+      title: '결제 금액이 에스크로로 보관 중',
+      description: '서비스 이용이 끝날 때까지 금액을 안전결제로 묶어 두고, 이후 방장이 최종 정산을 마무리해요.'
+    },
+    service_complete: {
+      title: '서비스 이용이 끝나 최종 정산만 남았어요',
+      description: '에스크로 기반 보호 상태에서 방장이 최종 정산 지급만 마치면 흐름이 완료돼요.'
+    },
+    host_settled: {
+      title: '방장 정산까지 모두 완료됐어요',
+      description: '안전결제 흐름이 끝났고, 네이버페이 포인트 적립 안내까지 같은 결제 흐름에서 확인할 수 있어요.'
+    }
+  }[stage] || {
+    title: '안전결제 흐름을 확인해 주세요',
+    description: '에스크로 기반 보호와 네이버페이 포인트 적립 안내를 같은 정산 흐름에서 보여줘요.'
+  };
+
+  return `
+    <article class="glass-card">
+      <div class="section-heading">
+        <h2>${options.title || copy.title}</h2>
+        <span>${options.badge || '안전결제'}</span>
+      </div>
+      <p>${options.description || copy.description}</p>
+      <div class="trust-row">
+        <span class="trust-badge">안전결제</span>
+        <span class="trust-badge">에스크로 기반 보호</span>
+        <span class="trust-badge">네이버페이 포인트 적립</span>
+      </div>
+    </article>
+  `;
+}
+
+function stageTrack(pot) {
+  const stage = typeof pot === 'string' ? pot : settlementProgressStage(pot);
   return `
     <div class="settlement-stage">
       <div class="stage-track">
@@ -2290,69 +2685,226 @@ function categoryFields(category) {
   `;
 }
 
+function renderLoginPanel() {
+  return `
+    <div class="login-card glass-card">
+      <div class="page-title">
+        <h1>로그인</h1>
+        <p>ID와 비밀번호를 입력하고 바로 팟 탐색과 정산 흐름으로 이어가세요.</p>
+      </div>
+
+      <form id="login-form" class="form-stack login-form">
+        <label class="form-field">
+          <span>ID</span>
+          <input id="login-id" name="loginId" required placeholder="potmate_student" autocomplete="username">
+        </label>
+        <label class="form-field">
+          <span>Password</span>
+          <input id="login-password" name="password" type="password" required placeholder="비밀번호 입력" autocomplete="current-password">
+        </label>
+        <label class="form-field remember-login">
+          <span>로그인 상태 유지</span>
+          <input id="remember-login" name="rememberLogin" type="checkbox">
+        </label>
+        <button class="gradient-button full-button" type="submit">로그인</button>
+      </form>
+
+      <button class="secondary-button full-button" type="button">카카오로 시작하기</button>
+      <button class="ghost-button find-account-link" type="button">아이디/비밀번호 찾기</button>
+    </div>
+  `;
+}
+
+function renderSignupPanel() {
+  return `
+    <div class="login-card glass-card">
+      <div class="page-title">
+        <h1>회원가입</h1>
+        <p>학교 커뮤니티에 맞는 계정을 만들고 안전한 N빵 흐름으로 들어오세요.</p>
+      </div>
+
+      <form id="signup-form" class="form-stack signup-form">
+        <label class="form-field">
+          <span>이메일</span>
+          <input id="signup-email" name="email" type="email" required placeholder="student@gachon.ac.kr" autocomplete="email">
+        </label>
+        <label class="form-field">
+          <span>비밀번호</span>
+          <input id="signup-password" name="password" type="password" required placeholder="8자 이상" autocomplete="new-password">
+        </label>
+        <label class="form-field">
+          <span>비밀번호 확인</span>
+          <input id="signup-password-confirm" name="passwordConfirm" type="password" required placeholder="비밀번호 다시 입력" autocomplete="new-password">
+        </label>
+        <button class="gradient-button full-button" type="submit">회원가입</button>
+      </form>
+
+      <button class="secondary-button full-button" type="button">카카오로 시작하기</button>
+    </div>
+  `;
+}
+
+function hostSettlementAction(pot) {
+  const stage = settlementProgressStage(pot);
+
+  if (pot.settlementStage === '정산 대기') {
+    return `<button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 요청</button>`;
+  }
+  if (stage === 'funds_held') {
+    return `<button type="button" data-advance-escrow="${pot.id}" data-next-escrow="service_complete">서비스 이용 완료 처리</button>`;
+  }
+  if (stage === 'service_complete') {
+    return `<button type="button" data-advance-escrow="${pot.id}" data-next-escrow="host_settled">최종 정산 지급</button>`;
+  }
+  return `<button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 상태 보기</button>`;
+}
+
+function renderTrustReminder() {
+  const summary = verificationSummary();
+  const trustItems = [
+    summary.badge,
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ].filter((item, index, all) => all.indexOf(item) === index);
+
+  return `
+    <article class="glass-card">
+      <div class="section-heading">
+        <h2>${summary.headline}</h2>
+        <span>${summary.badge}</span>
+      </div>
+      <p>${summary.helper} 에스크로 안전 정산과 네이버페이 포인트 적립 안내도 함께 확인할 수 있어요.</p>
+      <div class="trust-row">
+        ${trustItems.map((item) => `<span class="trust-badge">${item}</span>`).join('')}
+      </div>
+    </article>
+  `;
+}
+
+function renderAuth() {
+  const isLogin = state.authMode === 'login';
+
+  app.innerHTML = `
+    <section class="screen screen-enter auth-screen">
+      ${backButton('onboarding')}
+      <div class="auth-tabs">
+        <button type="button" class="${isLogin ? 'is-active' : ''}" data-auth-tab="login">로그인</button>
+        <button type="button" class="${isLogin ? '' : 'is-active'}" data-auth-tab="signup">회원가입</button>
+      </div>
+
+      ${isLogin ? renderLoginPanel() : renderSignupPanel()}
+      ${renderTrustReminder()}
+    </section>
+  `;
+}
+
+function renderVerification() {
+  const summary = verificationSummary();
+  const isVerified = Boolean(state.verification && state.verification.status === 'verified' && !state.verification.skipped);
+  const isSkipped = Boolean(state.verification && state.verification.skipped);
+  const methodLabel = verificationMethodLabel();
+
+  if (isVerified) {
+    app.innerHTML = `
+      <section class="screen screen-enter auth-screen verification-screen">
+        ${backButton('auth')}
+
+        <div class="page-title">
+          <h1>이미 학생 인증을 마쳤어요</h1>
+          <p>${methodLabel} 상태로 같은 학교 메이트 참여 준비가 끝났어요.</p>
+        </div>
+
+        ${renderTrustReminder()}
+
+        <div class="login-card glass-card">
+          <div class="section-heading">
+            <h2>현재 인증 상태</h2>
+            <span>${summary.badge}</span>
+          </div>
+          <div class="info-row"><span>신뢰 상태</span><strong>${summary.headline}</strong></div>
+          <div class="info-row"><span>인증 방식</span><strong>${methodLabel}</strong></div>
+          <button class="gradient-button full-button" type="button" data-route="home">홈으로 돌아가기</button>
+        </div>
+      </section>
+    `;
+    return;
+  }
+
+  app.innerHTML = `
+    <section class="screen screen-enter auth-screen verification-screen">
+      ${backButton('auth')}
+
+      <div class="page-title">
+        <h1>${isSkipped ? '학생 인증을 이어서 마칠 수 있어요' : '같은 학교 학생만 참여할 수 있어요'}</h1>
+        <p>${isSkipped
+          ? '네이버 학생증 인증이나 학교 이메일 인증으로 안전한 N빵을 이어서 시작하세요.'
+          : '네이버 학생증 인증으로 안전한 N빵을 시작하세요.'}</p>
+      </div>
+
+      ${renderTrustReminder()}
+
+      <div class="login-card glass-card">
+        <div class="section-heading">
+          <h2>${isSkipped ? '원할 때 바로 학생 인증' : '학생 인증 방법'}</h2>
+          <span>${isSkipped ? summary.badge : '검증된 캠퍼스 메이트'}</span>
+        </div>
+        ${isSkipped ? `<div class="info-row"><span>현재 상태</span><strong>${summary.headline}</strong></div>` : ''}
+        <div class="info-row"><span>참여 기준</span><strong>같은 학교 학생만 참여 가능</strong></div>
+        <div class="info-row"><span>인증 완료 상태</span><strong>검증된 캠퍼스 메이트</strong></div>
+        <div class="info-row"><span>우선 추천</span><strong>네이버 학생증 인증</strong></div>
+        <div class="info-row"><span>대안 방법</span><strong>학교 이메일 인증</strong></div>
+        <button class="gradient-button full-button" type="button" data-verify-method="naver_student_id">네이버 학생증으로 인증하기</button>
+        <button class="secondary-button full-button" type="button" data-verify-method="school_email">학교 이메일로 인증하기</button>
+        <button class="ghost-button full-button" type="button" data-skip-verification>나중에 인증할게요</button>
+      </div>
+    </section>
+  `;
+}
+
 function renderOnboarding() {
+  const slide = state.onboardingSlides[state.onboardingIndex] || state.onboardingSlides[0];
+  const isLast = state.onboardingIndex === state.onboardingSlides.length - 1;
+  // Approved slide copy includes "근처 대학생과 쉽고 빠르게" on the second onboarding page.
+
   app.innerHTML = `
     <section class="onboarding-screen onboarding-screen--scene screen-enter">
-      <div class="onboarding-scene-layer" aria-hidden="true" style="background-image: url('./images/onboarding-campus.png');"></div>
-      <div class="onboarding-header">
-        <div class="onboarding-brand">
-          <span class="brand-icon">P</span>
-          <strong>PotMate</strong>
-        </div>
-        <button class="onboarding-alert" type="button" aria-label="알림">
-          <span>🔔</span>
-          <i></i>
-        </button>
+      <div class="onboarding-pager">
+        ${state.onboardingSlides.map((item, index) => `
+          <button
+            type="button"
+            class="onboarding-dot ${index === state.onboardingIndex ? 'is-active' : ''}"
+            data-onboarding-page="${index}"
+            aria-label="${index + 1}번 온보딩"
+          ></button>
+        `).join('')}
       </div>
 
       <div class="onboarding-copy">
-        <h1 aria-label="근처 팟, 바로 합류">근처 팟,<br><span>바로 합류</span></h1>
-        <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
+        <h1>${slide.title}</h1>
+        <p>${slide.description}</p>
       </div>
 
-      <div class="onboarding-photo-card" aria-hidden="true">
+      <div class="onboarding-photo-card onboarding-graphic onboarding-graphic--${slide.graphic}" aria-hidden="true">
         <div class="onboarding-photo"></div>
       </div>
 
-      <div class="onboarding-chip-block">
-        <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
-        <div class="onboarding-chip-row">
-          ${createCategories.map((category, index) => `
-            <button type="button" class="onboarding-chip onboarding-chip-button ${index === 0 ? 'is-active' : ''}" data-onboarding-category="${category}">${category}</button>
-          `).join('')}
-        </div>
+      <div class="student-chip-row onboarding-support-row">
+        ${onboardingSupportChips(slide)}
       </div>
 
-      <button class="gradient-button full-button onboarding-start-button" type="button" data-route="home">바로 시작하기</button>
-      <p class="onboarding-login-note">이미 계정이 있으신가요? <button type="button" class="onboarding-login-link" data-route="login">로그인</button></p>
+      <div class="onboarding-actions">
+        ${isLast
+          ? '<button class="gradient-button full-button onboarding-start-button" type="button" data-route="auth">시작하기</button>'
+          : '<button class="secondary-button full-button" type="button" data-onboarding-next="next">다음</button>'}
+      </div>
     </section>
   `;
 }
 
 function renderLogin() {
-  app.innerHTML = `
-    <section class="screen screen-enter">
-      ${backButton('onboarding')}
-      <div class="page-title">
-        <h1>로그인</h1>
-        <p>ID와 비밀번호를 입력하고 팟 탐색과 정산 흐름으로 바로 이어가세요.</p>
-      </div>
-
-      <div class="login-card glass-card">
-        <form id="login-form" class="form-stack login-form">
-          <label class="form-field">
-            <span>ID</span>
-            <input id="login-id" name="loginId" required placeholder="potmate_student" autocomplete="username">
-          </label>
-          <label class="form-field">
-            <span>Password</span>
-            <input id="login-password" name="password" type="password" required placeholder="비밀번호 입력" autocomplete="current-password">
-          </label>
-          <button class="gradient-button full-button" type="submit">로그인</button>
-        </form>
-      </div>
-    </section>
-  `;
+  state.authMode = 'login';
+  renderAuth();
 }
 
 function renderHome(options = {}) {
@@ -2381,6 +2933,8 @@ function renderHome(options = {}) {
           ${renderHomeCategoryStats(sections)}
         </div>
       </section>
+
+      ${renderHomeTrustPanel()}
 
       <label class="search-box">
         <input id="search-input" type="search" value="${escapeHtml(state.query)}" placeholder="메뉴, 장소, 서비스명 검색">
@@ -2453,6 +3007,11 @@ function renderDetail() {
         <div class="info-row"><span>마감 상태</span><strong>${pot.deadlineLabel}</strong></div>
         ${detailRows(pot)}
       </article>
+
+      ${escrowNotice(pot, {
+        title: '이 팟의 정산 보호 방식',
+        description: '안전결제와 에스크로 기반 보호로 참여자 결제부터 방장 정산 완료까지 같은 흐름에서 확인해요.'
+      })}
 
       ${timelineCard(pot)}
 
@@ -2549,7 +3108,7 @@ function renderChat() {
   const chat = state.chats[pot.id] || { messages: [], notice: '' };
   const isHost = pot.host.id === state.user.id;
   const myMembership = currentMember(pot);
-  const shouldPay = Boolean(myMembership && !myMembership.paid && pot.settlementStage === '정산 요청됨');
+  const shouldPay = Boolean(myMembership && !myMembership.paid && settlementProgressStage(pot) === 'participant_payment' && pot.settlementStage !== '정산 대기');
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -2561,15 +3120,19 @@ function renderChat() {
         <span class="status-pill">${pot.settlementStage}</span>
       </header>
 
-      ${stageTrack(pot.settlementStage)}
+      ${stageTrack(pot)}
 
       ${isHost ? `
         <div class="host-actions">
           <button type="button" data-close-pot="${pot.id}">모집 마감</button>
-          <button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 요청</button>
+          ${hostSettlementAction(pot)}
           <button type="button" data-manage="${pot.id}">대기 확인</button>
         </div>
       ` : ''}
+
+      ${escrowNotice(pot, {
+        title: '채팅에서도 안전결제 상태를 같이 확인해요'
+      })}
 
       <div class="announcement">${chat.notice || '채팅에서 일정과 정산 안내를 함께 확인해 주세요.'}</div>
 
@@ -2609,7 +3172,19 @@ function renderSettlement() {
   const participants = pot.participants || [];
   const totalAmount = state.settlementTotal || pot.perPersonAmount * Math.max(participants.length, 1);
   const myMembership = currentMember(pot);
-  const shouldPay = Boolean(myMembership && !myMembership.paid && pot.settlementStage === '정산 요청됨');
+  const stage = settlementProgressStage(pot);
+  const shouldPay = Boolean(myMembership && !myMembership.paid && stage === 'participant_payment' && pot.settlementStage !== '정산 대기');
+  const hostAction = isHost
+    ? (() => {
+      if (pot.settlementStage === '정산 대기') {
+        return `<button class="gradient-button full-button" type="button" data-request-settlement="${pot.id}">정산 요청 보내기</button>`;
+      }
+      if (stage === 'funds_held' || stage === 'service_complete') {
+        return hostSettlementAction(pot).replace('<button type="button"', '<button class="gradient-button full-button" type="button"');
+      }
+      return '';
+    })()
+    : '';
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -2623,7 +3198,7 @@ function renderSettlement() {
         <p>누가 결제했고, 누가 아직 대기 중인지 실시간처럼 한눈에 보여줘요.</p>
       </div>
 
-      ${stageTrack(pot.settlementStage)}
+      ${stageTrack(pot)}
 
       <article class="glass-card">
         ${isHost ? `
@@ -2638,9 +3213,12 @@ function renderSettlement() {
         <div class="info-row"><span>1인당 금액</span><strong>${won(Math.ceil(totalAmount / Math.max(participants.length, 1)))}</strong></div>
       </article>
 
-      ${isHost && pot.settlementStage === '정산 대기' ? `
-        <button class="gradient-button full-button" type="button" data-request-settlement="${pot.id}">정산 요청 보내기</button>
-      ` : ''}
+      ${escrowNotice(pot, {
+        title: '정산 금액이 어떻게 보호되는지 보여줘요',
+        description: '안전결제와 에스크로 기반 보호로 참여자 결제, 금액 보관, 최종 정산 지급까지 같은 흐름에서 확인해요.'
+      })}
+
+      ${hostAction}
 
       ${shouldPay ? `
         <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 결제하기</button>
@@ -2668,6 +3246,7 @@ function renderSettlement() {
 
 function renderMy() {
   const wallet = core.buildWalletSections(state);
+  const trustPot = potById(state.selectedPotId || state.activeChatId || (state.pots[0] && state.pots[0].id));
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -2681,6 +3260,11 @@ function renderMy() {
         <strong class="price-xl">${won(state.pointBalance)}</strong>
         <p>안전 정산 대기 금액과 충전 내역을 함께 확인할 수 있어요.</p>
       </article>
+
+      ${trustPot ? escrowNotice(trustPot, {
+        title: '안전결제 보호와 포인트 적립을 같이 확인해요',
+        description: '에스크로 기반 보호, 안전결제 진행 상태, 네이버페이 포인트 적립 안내를 My 결제에서 바로 이어서 보여줘요.'
+      }) : ''}
 
       <div class="wallet-quick-charge">
         ${state.chargeOptions.map((amount) => `
@@ -2782,6 +3366,12 @@ function render() {
     case 'create':
       renderCreate();
       break;
+    case 'auth':
+      renderAuth();
+      break;
+    case 'verification':
+      renderVerification();
+      break;
     case 'login':
       renderLogin();
       break;
@@ -2797,6 +3387,7 @@ app.addEventListener('click', (event) => {
   const confirmJoin = event.target.closest('[data-confirm-join]');
   const chargeButton = event.target.closest('[data-charge]');
   const requestSettlementButton = event.target.closest('[data-request-settlement]');
+  const advanceEscrowButton = event.target.closest('[data-advance-escrow]');
   const remindButton = event.target.closest('[data-remind]');
   const sendMessageButton = event.target.closest('[data-send-message]');
   const closePotButton = event.target.closest('[data-close-pot]');
@@ -2805,9 +3396,57 @@ app.addEventListener('click', (event) => {
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
   const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
+  const onboardingNextButton = event.target.closest('[data-onboarding-next]');
+  const onboardingPageButton = event.target.closest('[data-onboarding-page]');
+  const authTabButton = event.target.closest('[data-auth-tab]');
+  const verifyMethodButton = event.target.closest('[data-verify-method]');
+  const skipVerificationButton = event.target.closest('[data-skip-verification]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
+    setRoute('home');
+    return;
+  }
+
+  if (onboardingNextButton) {
+    state.onboardingIndex = Math.min(state.onboardingIndex + 1, state.onboardingSlides.length - 1);
+    render();
+    return;
+  }
+
+  if (onboardingPageButton) {
+    state.onboardingIndex = Number(onboardingPageButton.dataset.onboardingPage);
+    render();
+    return;
+  }
+
+  if (authTabButton) {
+    state.authMode = authTabButton.dataset.authTab;
+    renderAuth();
+    return;
+  }
+
+  if (verifyMethodButton) {
+    const method = verifyMethodButton.dataset.verifyMethod;
+
+    if (method === 'naver_student_id') {
+      state.verification = { status: 'verified', method: 'naver_student_id', skipped: false };
+      showToast('네이버 학생증 인증이 완료됐어요. 검증된 캠퍼스 메이트와 안심하고 시작해 보세요.');
+      setRoute('home');
+      return;
+    }
+
+    if (method === 'school_email') {
+      state.verification = { status: 'verified', method: 'school_email', skipped: false };
+      showToast('학교 이메일 확인이 완료됐어요. 검증된 캠퍼스 메이트와 안심하고 시작해 보세요.');
+      setRoute('home');
+      return;
+    }
+  }
+
+  if (skipVerificationButton) {
+    state.verification = { status: 'skipped', method: null, skipped: true };
+    showToast('학생 인증은 나중에 해도 괜찮아요. 먼저 홈에서 팟을 둘러보세요.');
     setRoute('home');
     return;
   }
@@ -2871,6 +3510,21 @@ app.addEventListener('click', (event) => {
     state = core.requestSettlement(state, requestSettlementButton.dataset.requestSettlement, state.settlementTotal);
     showToast('정산 요청을 보냈어요. 채팅방과 My 결제에서 상태가 함께 갱신됩니다.');
     setRoute('chat', requestSettlementButton.dataset.requestSettlement);
+    return;
+  }
+
+  if (advanceEscrowButton) {
+    state = core.advanceEscrowStage(
+      state,
+      advanceEscrowButton.dataset.advanceEscrow,
+      advanceEscrowButton.dataset.nextEscrow
+    );
+    showToast(
+      advanceEscrowButton.dataset.nextEscrow === 'service_complete'
+        ? '서비스 이용 완료 단계로 넘어갔어요.'
+        : '최종 정산 지급까지 완료됐어요.'
+    );
+    setRoute('settlement', advanceEscrowButton.dataset.advanceEscrow);
     return;
   }
 
@@ -2981,6 +3635,25 @@ app.addEventListener('submit', (event) => {
     return;
   }
 
+  if (event.target.id === 'signup-form') {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const email = String(formData.get('email') || '').trim();
+    const password = String(formData.get('password') || '');
+    const passwordConfirm = String(formData.get('passwordConfirm') || '');
+    state.authMode = 'signup';
+
+    if (password !== passwordConfirm) {
+      showToast('비밀번호가 일치하지 않아요. 다시 확인해 주세요.');
+      renderAuth();
+      return;
+    }
+
+    state.authMode = 'login';
+    showToast(`${email || '회원가입 정보'} 저장 완료. 학생 인증을 이어서 같은 학교 메이트와 더 안심하고 시작해 보세요.`);
+    setRoute('verification');
+    return;
+  }
   if (event.target.id !== 'create-form') return;
   event.preventDefault();
 

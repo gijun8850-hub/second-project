@@ -174,8 +174,8 @@
     if (verification && verification.status === 'verified' && verification.method === 'school_email' && !verification.skipped) {
       return {
         badge: '학교 이메일 인증 완료',
-        headline: '인증된 캠퍼스 메이트',
-        helper: '학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요.'
+        headline: '검증된 캠퍼스 메이트',
+        helper: '같은 학교 학생만 참여할 수 있어요. 학교 이메일 확인으로 참여 신뢰를 보여줘요.'
       };
     }
 

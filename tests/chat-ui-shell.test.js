@@ -304,7 +304,9 @@ test('verification flow source exposes dedicated route tokens and simulated opti
     "setRoute('verification')",
     'data-verify-method="naver_student_id"',
     'data-verify-method="school_email"',
-    'data-skip-verification'
+    'data-skip-verification',
+    '같은 학교 학생만 참여할 수 있어요',
+    '네이버 학생증 인증으로 안전한 N빵을 시작하세요'
   ].forEach((token) => {
     assert.ok(appSource.includes(token), `Missing token: ${token}`);
   });
@@ -433,6 +435,8 @@ test('runtime harness routes successful signup into the verification screen', ()
   assert.match(harness.app.innerHTML, /data-verify-method="naver_student_id"/);
   assert.match(harness.app.innerHTML, /data-verify-method="school_email"/);
   assert.match(harness.app.innerHTML, /data-skip-verification/);
+  assert.match(harness.app.innerHTML, /같은 학교 학생만 참여할 수 있어요/);
+  assert.match(harness.app.innerHTML, /네이버 학생증 인증으로 안전한 N빵을 시작하세요/);
 });
 
 test('runtime harness completes simulated Naver student ID verification and shows verified revisit UI', () => {
@@ -461,6 +465,26 @@ test('runtime harness completes simulated Naver student ID verification and show
   assert.doesNotMatch(harness.app.innerHTML, /학생 인증 방식 선택/);
 });
 
+test('verified home route surfaces the requested app-wide trust highlights', () => {
+  const harness = createHarness();
+
+  reachVerification(harness);
+  harness.dispatchClick({
+    '[data-verify-method]': {
+      dataset: { verifyMethod: 'naver_student_id' }
+    }
+  });
+
+  [
+    '네이버 학생증 인증 완료',
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ].forEach((copy) => {
+    assert.match(harness.app.innerHTML, new RegExp(copy));
+  });
+});
+
 test('runtime harness completes simulated school email verification and shows verified revisit UI', () => {
   const harness = createHarness();
 
@@ -476,8 +500,8 @@ test('runtime harness completes simulated school email verification and shows ve
 
   revisitRoute(harness, 'auth');
   assert.match(harness.app.innerHTML, /학교 이메일 인증 완료/);
-  assert.match(harness.app.innerHTML, /인증된 캠퍼스 메이트/);
-  assert.match(harness.app.innerHTML, /학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요/);
+  assert.match(harness.app.innerHTML, /검증된 캠퍼스 메이트/);
+  assert.match(harness.app.innerHTML, /같은 학교 학생만 참여할 수 있어요. 학교 이메일 확인으로 참여 신뢰를 보여줘요/);
   assert.doesNotMatch(harness.app.innerHTML, /캠퍼스 메이트 인증 필요/);
 
   revisitRoute(harness, 'verification');
@@ -506,7 +530,7 @@ test('runtime harness allows skipping optional student verification and shows sk
   assert.doesNotMatch(harness.app.innerHTML, /캠퍼스 메이트 인증 필요/);
 
   revisitRoute(harness, 'verification');
-  assert.match(harness.app.innerHTML, /학생 인증은 나중에 이어갈 수 있어요/);
+  assert.match(harness.app.innerHTML, /학생 인증을 이어서 마칠 수 있어요/);
   assert.match(harness.app.innerHTML, /인증은 나중에/);
   assert.match(harness.app.innerHTML, /data-verify-method="naver_student_id"/);
   assert.match(harness.app.innerHTML, /data-verify-method="school_email"/);

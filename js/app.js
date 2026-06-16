@@ -88,6 +88,47 @@ function renderHomeSpotlight(sections) {
   `;
 }
 
+function onboardingSupportChips(slide) {
+  const chipsByGraphic = {
+    categories: ['배달팟', '택시팟', '구독팟'],
+    'campus-map': ['위치 기반 매칭', '근처 대학생 연결', '안전 참여'],
+    'recruit-chat-pay': ['모집', '채팅', '정산', '네이버페이']
+  };
+
+  return (chipsByGraphic[slide.graphic] || []).map((item) => `<span class="student-chip">${item}</span>`).join('');
+}
+
+function renderHomeTrustPanel() {
+  const summary = verificationSummary();
+  const baseItems = Array.isArray(state.trustHighlights) ? state.trustHighlights : [
+    '네이버 학생증 인증 완료',
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ];
+  const verified = Boolean(state.verification && state.verification.status === 'verified' && !state.verification.skipped);
+  const trustItems = [
+    verified ? summary.badge : null,
+    ...baseItems.slice(1)
+  ].filter((item, index, all) => item && all.indexOf(item) === index);
+
+  return `
+    <article class="glass-card home-trust-panel">
+      <div class="section-heading">
+        <h2>${verified ? summary.headline : '안전하게 시작하는 캠퍼스 N빵'}</h2>
+        <span>${verified ? summary.badge : '학생 인증 가능'}</span>
+      </div>
+      <p>${verified
+        ? '같은 학교 학생만 참여할 수 있어요. 에스크로 안전 정산과 네이버페이 포인트 적립 흐름도 홈에서 바로 확인할 수 있어요.'
+        : '학생 인증을 마치면 같은 학교 참여 신뢰를 더 분명하게 보여줄 수 있고, 안전 정산 흐름도 더 직관적으로 확인할 수 있어요.'}</p>
+      <div class="trust-row">
+        ${trustItems.map((item) => `<span class="trust-badge">${item}</span>`).join('')}
+      </div>
+      ${verified ? '' : '<button class="ghost-button" type="button" data-route="verification">지금 학생 인증하기</button>'}
+    </article>
+  `;
+}
+
 function renderHomeResults(sections) {
   const promo = state.promoBanners[0];
 
@@ -613,22 +654,24 @@ function renderVerification() {
       ${backButton('auth')}
 
       <div class="page-title">
-        <h1>${isSkipped ? '학생 인증은 나중에 이어갈 수 있어요' : '검증된 캠퍼스 메이트로 이어지는 학생 인증'}</h1>
+        <h1>${isSkipped ? '학생 인증을 이어서 마칠 수 있어요' : '같은 학교 학생만 참여할 수 있어요'}</h1>
         <p>${isSkipped
-          ? `${summary.helper} 지금 인증하면 같은 학교 참여 신뢰를 더 빠르게 보여줄 수 있어요.`
-          : '같은 학교 참여를 더 안심하게 만드는 선택 단계예요. 실제 연동 없이 UX만 먼저 보여드려요.'}</p>
+          ? '네이버 학생증 인증이나 학교 이메일 인증으로 안전한 N빵을 이어서 시작하세요.'
+          : '네이버 학생증 인증으로 안전한 N빵을 시작하세요.'}</p>
       </div>
 
       ${renderTrustReminder()}
 
       <div class="login-card glass-card">
         <div class="section-heading">
-          <h2>${isSkipped ? '원할 때 바로 학생 인증' : '학생 인증 방식 선택'}</h2>
-          <span>${isSkipped ? summary.badge : '완료 후 바로 홈으로 이동'}</span>
+          <h2>${isSkipped ? '원할 때 바로 학생 인증' : '학생 인증 방법'}</h2>
+          <span>${isSkipped ? summary.badge : '검증된 캠퍼스 메이트'}</span>
         </div>
         ${isSkipped ? `<div class="info-row"><span>현재 상태</span><strong>${summary.headline}</strong></div>` : ''}
+        <div class="info-row"><span>참여 기준</span><strong>같은 학교 학생만 참여 가능</strong></div>
+        <div class="info-row"><span>인증 완료 상태</span><strong>검증된 캠퍼스 메이트</strong></div>
         <div class="info-row"><span>우선 추천</span><strong>네이버 학생증 인증</strong></div>
-        <div class="info-row"><span>대안 방법</span><strong>학교 이메일 확인</strong></div>
+        <div class="info-row"><span>대안 방법</span><strong>학교 이메일 인증</strong></div>
         <button class="gradient-button full-button" type="button" data-verify-method="naver_student_id">네이버 학생증으로 인증하기</button>
         <button class="secondary-button full-button" type="button" data-verify-method="school_email">학교 이메일로 인증하기</button>
         <button class="ghost-button full-button" type="button" data-skip-verification>나중에 인증할게요</button>
@@ -662,6 +705,10 @@ function renderOnboarding() {
 
       <div class="onboarding-photo-card onboarding-graphic onboarding-graphic--${slide.graphic}" aria-hidden="true">
         <div class="onboarding-photo"></div>
+      </div>
+
+      <div class="student-chip-row onboarding-support-row">
+        ${onboardingSupportChips(slide)}
       </div>
 
       <div class="onboarding-actions">
@@ -704,6 +751,8 @@ function renderHome(options = {}) {
           ${renderHomeCategoryStats(sections)}
         </div>
       </section>
+
+      ${renderHomeTrustPanel()}
 
       <label class="search-box">
         <input id="search-input" type="search" value="${escapeHtml(state.query)}" placeholder="메뉴, 장소, 서비스명 검색">

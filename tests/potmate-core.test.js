@@ -373,8 +373,8 @@ test('buildVerificationSummary returns the verified school email trust copy', ()
     buildVerificationSummary({ status: 'verified', method: 'school_email', skipped: false }),
     {
       badge: '학교 이메일 인증 완료',
-      headline: '인증된 캠퍼스 메이트',
-      helper: '학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요.'
+      headline: '검증된 캠퍼스 메이트',
+      helper: '같은 학교 학생만 참여할 수 있어요. 학교 이메일 확인으로 참여 신뢰를 보여줘요.'
     }
   );
 });
@@ -422,7 +422,8 @@ test('PotMateSeed uses the approved auth defaults and onboarding trust copy', ()
     description: '채팅, 정산, 네이버페이 결제까지 앱 안에서 모두 해결하세요.',
     graphic: 'recruit-chat-pay'
   });
-  assert.equal(seed.trustHighlights[0], '네이버 학생증으로 대학생 인증');
-  assert.equal(seed.trustHighlights[1], '위치 기반으로 내 주변 학생 연결');
-  assert.equal(seed.trustHighlights[2], '정산 전 금액 보관으로 더 안전한 거래');
+  assert.equal(seed.trustHighlights[0], '네이버 학생증 인증 완료');
+  assert.equal(seed.trustHighlights[1], '검증된 캠퍼스 메이트');
+  assert.equal(seed.trustHighlights[2], '에스크로 안전 정산');
+  assert.equal(seed.trustHighlights[3], '네이버페이 포인트 적립');
 });
