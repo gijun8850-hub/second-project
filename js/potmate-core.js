@@ -37,8 +37,24 @@
   const ESCROW_STAGE_BY_SETTLEMENT_STAGE = {
     '정산 대기': 'participant_payment',
     '정산 요청됨': 'funds_held',
-    '정산 완료': 'host_settled'
+    '정산 완료': 'host_settled',
+    '참여자 결제': 'participant_payment',
+    '금액 보관': 'funds_held',
+    '서비스 이용 완료': 'service_complete',
+    '방장 정산 완료': 'host_settled'
   };
+
+  SETTLEMENT_STAGE_INDEX['정산 요청됨'] = 0;
+  ESCROW_STAGE_BY_SETTLEMENT_STAGE['정산 요청됨'] = 'participant_payment';
+
+  const SETTLEMENT_STAGE_BY_ESCROW_STAGE = {
+    participant_payment: '참여자 결제',
+    funds_held: '금액 보관',
+    service_complete: '서비스 이용 완료',
+    host_settled: '방장 정산 완료'
+  };
+  const PENDING_PAYMENT_STATUSES = new Set(['정산 요청됨', '참여중', '참여자 결제', '금액 보관', '서비스 이용 완료']);
+  const COMPLETED_PAYMENT_STATUSES = new Set(['정산 완료', '방장 정산 완료', '충전 완료']);
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -181,6 +197,28 @@
   function normalizeEscrowStage(stageOrEscrow) {
     if (ESCROW_STAGE_BY_SETTLEMENT_STAGE[stageOrEscrow]) return ESCROW_STAGE_BY_SETTLEMENT_STAGE[stageOrEscrow];
     return stageOrEscrow || 'participant_payment';
+  }
+
+  function settlementStageFromEscrowStage(escrowStage) {
+    return SETTLEMENT_STAGE_BY_ESCROW_STAGE[normalizeEscrowStage(escrowStage)] || SETTLEMENT_STAGE_BY_ESCROW_STAGE.participant_payment;
+  }
+
+  function syncSettlementStatus(next, potId, status) {
+    next.settlements = (next.settlements || []).map((item) => (
+      item.potId === potId
+        ? { ...item, status }
+        : item
+    ));
+  }
+
+  function appendSystemMessage(next, pot, text) {
+    next.chats = next.chats || {};
+    next.chats[pot.id] = ensureChat(next.chats, pot);
+    next.chats[pot.id].messages.push({
+      from: 'system',
+      type: 'system',
+      text
+    });
   }
 
   function buildDetail(category, input) {
@@ -488,6 +526,131 @@
     };
   }
 
+  function requestSettlement(state, potId, totalAmount) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    const participants = pot.participants && pot.participants.length ? pot.participants : [];
+    const perPersonAmount = Math.ceil(Number(totalAmount || 0) / Math.max(participants.length, 1));
+    const participantPaymentStage = settlementStageFromEscrowStage('participant_payment');
+
+    pot.perPersonAmount = perPersonAmount;
+    pot.participants = participants.map((member) => ({
+      ...member,
+      paid: member.id === pot.host.id
+    }));
+    updatePotStage(pot, participantPaymentStage);
+
+    next.settlements = next.settlements || [];
+    next.settlements.unshift({
+      id: `settlement-${Date.now()}`,
+      potId,
+      title: pot.title,
+      amount: perPersonAmount,
+      totalAmount: Number(totalAmount || 0),
+      status: participantPaymentStage,
+      date: '방금'
+    });
+
+    next.payments = next.payments || [];
+    if (pot.participants.some((member) => member.id === next.user.id && !member.paid)) {
+      upsertPayment(next, {
+        id: `payment-${Date.now()}`,
+        potId,
+        title: pot.title,
+        category: pot.category,
+        amount: perPersonAmount,
+        status: participantPaymentStage,
+        date: '방금'
+      });
+    }
+
+    appendSystemMessage(next, pot, `정산 요청이 도착했어요. 1인당 ${formatWon(perPersonAmount)}씩 결제해 주세요.`);
+
+    return next;
+  }
+
+  function markParticipantPaid(state, potId, participantId, amount) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    let deducted = false;
+    pot.participants = (pot.participants || []).map((member) => {
+      if (member.id !== participantId) return member;
+      deducted = !member.paid;
+      return { ...member, paid: true };
+    });
+
+    const totalAmount = Number(amount || pot.perPersonAmount || 0);
+    if (participantId === next.user.id && deducted) {
+      next.pointBalance = Math.max(Number(next.pointBalance || 0) - totalAmount, 0);
+    }
+
+    const allPaid = pot.participants.length > 0 && pot.participants.every((member) => member.paid);
+    const nextStage = settlementStageFromEscrowStage(allPaid ? 'funds_held' : 'participant_payment');
+    updatePotStage(pot, nextStage);
+
+    next.payments = next.payments || [];
+    upsertPayment(next, {
+      id: `paid-${Date.now()}`,
+      potId,
+      title: pot.title,
+      category: pot.category,
+      amount: totalAmount,
+      status: nextStage,
+      date: '방금'
+    });
+
+    syncSettlementStatus(next, potId, nextStage);
+    appendSystemMessage(
+      next,
+      pot,
+      allPaid
+        ? '모든 참여자의 결제가 완료되어 금액이 에스크로로 안전하게 보관 중이에요.'
+        : '결제가 반영됐어요. 남은 참여자의 결제가 끝나면 금액이 안전하게 보관돼요.'
+    );
+
+    return next;
+  }
+
+  function advanceEscrowStage(state, potId, nextEscrowStage) {
+    const next = clone(state);
+    const pot = next.pots.find((item) => item.id === potId);
+    if (!pot) return next;
+
+    const normalizedStage = normalizeEscrowStage(nextEscrowStage);
+    const nextStage = settlementStageFromEscrowStage(normalizedStage);
+
+    updatePotStage(pot, nextStage);
+    syncSettlementStatus(next, potId, nextStage);
+    next.payments = (next.payments || []).map((item) => (
+      item.potId === potId
+        ? { ...item, status: nextStage }
+        : item
+    ));
+
+    appendSystemMessage(
+      next,
+      pot,
+      normalizedStage === 'service_complete'
+        ? '서비스 이용이 완료되어 방장이 최종 정산을 준비하고 있어요.'
+        : '방장 정산 완료. 에스크로 보관 금액이 최종 정산까지 마무리됐어요.'
+    );
+
+    return next;
+  }
+
+  function buildWalletSections(state) {
+    const payments = clone(state.payments || []);
+    return {
+      pending: payments.filter((item) => PENDING_PAYMENT_STATUSES.has(item.status)),
+      completed: payments.filter((item) => COMPLETED_PAYMENT_STATUSES.has(item.status)),
+      recent: payments
+    };
+  }
+
   function buildSettlementStages(currentStage) {
     const currentIndex = Math.max(
       Object.prototype.hasOwnProperty.call(SETTLEMENT_STAGE_INDEX, currentStage)
@@ -525,6 +688,7 @@
     sendReminder,
     chargePoints,
     markParticipantPaid,
+    advanceEscrowStage,
     getPaymentHistory,
     buildWalletSections,
     buildSettlementStages,

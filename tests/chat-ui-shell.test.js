@@ -5,11 +5,16 @@ const vm = require('node:vm');
 
 const appSource = fs.readFileSync('js/app.js', 'utf8');
 const seedSource = fs.readFileSync('js/potmate-data.js', 'utf8');
+const core = require('../js/potmate-core.js');
 
 function loadSeed() {
   const sandbox = { window: {} };
   vm.runInNewContext(seedSource, sandbox);
   return sandbox.window.PotMateSeed;
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
 }
 
 function buildVerificationSummary(verification) {
@@ -44,8 +49,9 @@ function buildVerificationSummary(verification) {
   };
 }
 
-function createHarness() {
+function createHarness(options = {}) {
   const listeners = new Map();
+  const seed = options.seed ? options.seed(clone(loadSeed())) : loadSeed();
   const app = {
     innerHTML: '',
     addEventListener(type, handler) {
@@ -69,49 +75,8 @@ function createHarness() {
     }
   };
   const window = {
-    PotMateSeed: loadSeed(),
-    PotMateCore: {
-      formatWon(amount) {
-        return `${amount}`;
-      },
-      buildHomeSections() {
-        return {
-          categoryStats: [],
-          recommended: [],
-          visible: [],
-          closingSoon: [],
-          categorySpotlights: []
-        };
-      },
-      buildVerificationSummary,
-      canJoinPot() {
-        return { ok: true };
-      },
-      joinPot(state) {
-        return state;
-      },
-      chargePoints(state) {
-        return state;
-      },
-      requestSettlement(state) {
-        return state;
-      },
-      sendReminder() {
-        return '';
-      },
-      sendChatMessage(state) {
-        return state;
-      },
-      updateRecruitmentStatus(state) {
-        return state;
-      },
-      markParticipantPaid(state) {
-        return state;
-      },
-      createPot(input) {
-        return input;
-      }
-    },
+    PotMateSeed: seed,
+    PotMateCore: core,
     clearTimeout() {},
     setTimeout() {
       return 0;
@@ -227,6 +192,21 @@ function revisitRoute(harness, route) {
       dataset: { route }
     }
   });
+}
+
+function openRouteWithPot(harness, route, potId) {
+  harness.dispatchClick({
+    '[data-route]': {
+      dataset: { route }
+    },
+    '[data-select-pot]': {
+      dataset: { selectPot: potId }
+    }
+  });
+}
+
+function currentStagePattern(label) {
+  return new RegExp(`stage-step is-current">\\s*<strong>${label}</strong>`);
 }
 
 test('app shell exposes home hub and control tokens', () => {
@@ -349,6 +329,68 @@ test('home cards expose compact CTA sizing tokens for join and chat actions', ()
   ].forEach((token) => {
     assert.ok(appSource.includes(token), `Missing token: ${token}`);
   });
+});
+
+test('detail, settlement, and My payment shells surface escrow trust copy', () => {
+  const harness = createHarness();
+  const trustCopy = [/안전결제/, /에스크로 기반 보호/, /네이버페이 포인트 적립/];
+
+  openRouteWithPot(harness, 'detail', 'pot-taxi-1');
+  trustCopy.forEach((pattern) => {
+    assert.match(harness.app.innerHTML, pattern);
+  });
+
+  openRouteWithPot(harness, 'settlement', 'pot-taxi-1');
+  trustCopy.forEach((pattern) => {
+    assert.match(harness.app.innerHTML, pattern);
+  });
+
+  revisitRoute(harness, 'my');
+  trustCopy.forEach((pattern) => {
+    assert.match(harness.app.innerHTML, pattern);
+  });
+});
+
+test('host settlement request keeps 참여자 결제 as the current step until everyone pays', () => {
+  const harness = createHarness();
+
+  openRouteWithPot(harness, 'settlement', 'pot-taxi-1');
+  harness.dispatchClick({
+    '[data-request-settlement]': {
+      dataset: { requestSettlement: 'pot-taxi-1' }
+    }
+  });
+
+  assert.match(harness.app.innerHTML, currentStagePattern('참여자 결제'));
+  assert.doesNotMatch(harness.app.innerHTML, currentStagePattern('금액 보관'));
+});
+
+test('host progression controls cover service completion and final settlement release', () => {
+  const fundsHeldHarness = createHarness({
+    seed(seed) {
+      const pot = seed.pots.find((item) => item.id === 'pot-taxi-1');
+      pot.settlementStage = '금액 보관';
+      pot.escrowStage = 'funds_held';
+      pot.participants = pot.participants.map((member) => ({ ...member, paid: true }));
+      return seed;
+    }
+  });
+
+  openRouteWithPot(fundsHeldHarness, 'chat', 'pot-taxi-1');
+  assert.match(fundsHeldHarness.app.innerHTML, /서비스 이용 완료 처리/);
+
+  const serviceCompleteHarness = createHarness({
+    seed(seed) {
+      const pot = seed.pots.find((item) => item.id === 'pot-taxi-1');
+      pot.settlementStage = '서비스 이용 완료';
+      pot.escrowStage = 'service_complete';
+      pot.participants = pot.participants.map((member) => ({ ...member, paid: true }));
+      return seed;
+    }
+  });
+
+  openRouteWithPot(serviceCompleteHarness, 'settlement', 'pot-taxi-1');
+  assert.match(serviceCompleteHarness.app.innerHTML, /최종 정산 지급/);
 });
 
 test('runtime harness surfaces trust reminders on auth entry', () => {

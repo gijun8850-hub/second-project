@@ -15,6 +15,7 @@ const {
   sendReminder,
   chargePoints,
   markParticipantPaid,
+  advanceEscrowStage,
   getPaymentHistory,
   buildWalletSections,
   buildSettlementStages,
@@ -210,11 +211,74 @@ test('requestSettlement computes per-person payment and emits a system message',
 
   const next = requestSettlement(state, 'pot-taxi-near', 27000);
 
-  assert.equal(next.pots[0].settlementStage, '정산 요청됨');
-  assert.equal(next.pots[0].escrowStage, 'funds_held');
+  assert.equal(next.pots[0].settlementStage, '참여자 결제');
+  assert.equal(next.pots[0].escrowStage, 'participant_payment');
   assert.equal(next.pots[0].perPersonAmount, 9000);
   assert.equal(next.settlements[0].amount, 9000);
+  assert.equal(next.settlements[0].status, '참여자 결제');
+  assert.equal(next.payments[0].status, '참여자 결제');
   assert.match(next.chats['pot-taxi-near'].messages.at(-1).text, /정산 요청/);
+});
+
+test('requestSettlement keeps 참여자 결제 active until every participant has paid', () => {
+  const state = {
+    user: { id: 'me', name: '민아' },
+    pots: [
+      {
+        ...pots[1],
+        host: { id: 'host-2', name: '민호', avatar: '민' },
+        participants: [
+          { id: 'host-2', name: '민호', avatar: '민', paid: true },
+          { id: 'me', name: '민아', avatar: '민', paid: false },
+          { id: 'mate-3', name: '지윤', avatar: '지', paid: false }
+        ]
+      }
+    ],
+    chats: { 'pot-taxi-near': { potId: 'pot-taxi-near', messages: [] } },
+    settlements: [],
+    payments: []
+  };
+
+  const next = requestSettlement(state, 'pot-taxi-near', 27000);
+
+  assert.equal(next.pots[0].settlementStage, '참여자 결제');
+  assert.equal(next.pots[0].escrowStage, 'participant_payment');
+  assert.equal(next.settlements[0].status, '참여자 결제');
+  assert.equal(next.payments[0].status, '참여자 결제');
+});
+
+test('advanceEscrowStage moves from 금액 보관 to 서비스 이용 완료 to terminal host_settled', () => {
+  const state = {
+    user: { id: 'me', name: '민아' },
+    pots: [
+      {
+        ...pots[1],
+        host: { id: 'me', name: '민아', avatar: '민', isMe: true },
+        settlementStage: '금액 보관',
+        escrowStage: 'funds_held',
+        participants: [
+          { id: 'me', name: '민아', avatar: '민', paid: true, isMe: true },
+          { id: 'mate-3', name: '지윤', avatar: '지', paid: true },
+          { id: 'mate-4', name: '하람', avatar: '하', paid: true }
+        ]
+      }
+    ],
+    chats: { 'pot-taxi-near': { potId: 'pot-taxi-near', messages: [] } },
+    settlements: [{ id: 'set-1', potId: 'pot-taxi-near', status: '금액 보관', amount: 9000 }],
+    payments: [{ id: 'pay-1', potId: 'pot-taxi-near', status: '금액 보관', amount: 9000, title: '강남역 택시팟', category: '택시팟', date: '오늘' }]
+  };
+
+  const serviceComplete = advanceEscrowStage(state, 'pot-taxi-near', 'service_complete');
+  assert.equal(serviceComplete.pots[0].settlementStage, '서비스 이용 완료');
+  assert.equal(serviceComplete.pots[0].escrowStage, 'service_complete');
+  assert.equal(serviceComplete.settlements[0].status, '서비스 이용 완료');
+
+  const hostSettled = advanceEscrowStage(serviceComplete, 'pot-taxi-near', 'host_settled');
+  assert.equal(hostSettled.pots[0].settlementStage, '방장 정산 완료');
+  assert.equal(hostSettled.pots[0].escrowStage, 'host_settled');
+  assert.equal(hostSettled.settlements[0].status, '방장 정산 완료');
+  assert.equal(hostSettled.payments[0].status, '방장 정산 완료');
+  assert.match(hostSettled.chats['pot-taxi-near'].messages.at(-1).text, /방장 정산 완료/);
 });
 
 test('sendReminder returns the expected toast copy for unpaid participants', () => {
@@ -244,10 +308,10 @@ test('markParticipantPaid deducts balance for the current user and completes set
   const next = markParticipantPaid(state, 'pot-subscription', 'me', 4250);
 
   assert.equal(next.pointBalance, 23750);
-  assert.equal(next.pots[0].settlementStage, '정산 완료');
-  assert.equal(next.pots[0].escrowStage, 'host_settled');
-  assert.equal(next.payments[0].status, '정산 완료');
-  assert.equal(next.settlements[0].status, '정산 완료');
+  assert.equal(next.pots[0].settlementStage, '금액 보관');
+  assert.equal(next.pots[0].escrowStage, 'funds_held');
+  assert.equal(next.payments[0].status, '금액 보관');
+  assert.equal(next.settlements[0].status, '금액 보관');
 });
 
 test('chargePoints increases balance and prepends a completed charge history item', () => {
@@ -280,7 +344,7 @@ test('buildSettlementStages marks the current progress correctly', () => {
     '서비스 이용 완료',
     '방장 정산 완료'
   ]);
-  assert.deepEqual(stages.map((stage) => stage.state), ['done', 'current', 'pending', 'pending']);
+  assert.deepEqual(stages.map((stage) => stage.state), ['current', 'pending', 'pending', 'pending']);
 });
 
 test('buildSettlementStages accepts the escrowStage source-of-truth key', () => {

@@ -254,7 +254,61 @@ function participantStrip(pot) {
   `;
 }
 
-function stageTrack(stage) {
+function settlementProgressStage(pot) {
+  if (pot && pot.escrowStage) {
+    return pot.escrowStage;
+  }
+  if (pot && pot.settlementStage === '정산 요청됨') {
+    return 'participant_payment';
+  }
+  if (pot && pot.settlementStage === '정산 완료') {
+    return 'host_settled';
+  }
+  return pot ? pot.settlementStage : 'participant_payment';
+}
+
+function escrowNotice(pot, options = {}) {
+  const stage = settlementProgressStage(pot);
+  const copy = {
+    participant_payment: {
+      title: '안전결제로 참여자 결제를 모으는 중',
+      description: '에스크로 기반 보호로 참여자 결제가 끝나면 금액이 안전하게 보관돼요.'
+    },
+    funds_held: {
+      title: '결제 금액이 에스크로로 보관 중',
+      description: '서비스 이용이 끝날 때까지 금액을 안전결제로 묶어 두고, 이후 방장이 최종 정산을 마무리해요.'
+    },
+    service_complete: {
+      title: '서비스 이용이 끝나 최종 정산만 남았어요',
+      description: '에스크로 기반 보호 상태에서 방장이 최종 정산 지급만 마치면 흐름이 완료돼요.'
+    },
+    host_settled: {
+      title: '방장 정산까지 모두 완료됐어요',
+      description: '안전결제 흐름이 끝났고, 네이버페이 포인트 적립 안내까지 같은 결제 흐름에서 확인할 수 있어요.'
+    }
+  }[stage] || {
+    title: '안전결제 흐름을 확인해 주세요',
+    description: '에스크로 기반 보호와 네이버페이 포인트 적립 안내를 같은 정산 흐름에서 보여줘요.'
+  };
+
+  return `
+    <article class="glass-card">
+      <div class="section-heading">
+        <h2>${options.title || copy.title}</h2>
+        <span>${options.badge || '안전결제'}</span>
+      </div>
+      <p>${options.description || copy.description}</p>
+      <div class="trust-row">
+        <span class="trust-badge">안전결제</span>
+        <span class="trust-badge">에스크로 기반 보호</span>
+        <span class="trust-badge">네이버페이 포인트 적립</span>
+      </div>
+    </article>
+  `;
+}
+
+function stageTrack(pot) {
+  const stage = typeof pot === 'string' ? pot : settlementProgressStage(pot);
   return `
     <div class="settlement-stage">
       <div class="stage-track">
@@ -465,6 +519,21 @@ function renderSignupPanel() {
       <button class="secondary-button full-button" type="button">카카오로 시작하기</button>
     </div>
   `;
+}
+
+function hostSettlementAction(pot) {
+  const stage = settlementProgressStage(pot);
+
+  if (pot.settlementStage === '정산 대기') {
+    return `<button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 요청</button>`;
+  }
+  if (stage === 'funds_held') {
+    return `<button type="button" data-advance-escrow="${pot.id}" data-next-escrow="service_complete">서비스 이용 완료 처리</button>`;
+  }
+  if (stage === 'service_complete') {
+    return `<button type="button" data-advance-escrow="${pot.id}" data-next-escrow="host_settled">최종 정산 지급</button>`;
+  }
+  return `<button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 상태 보기</button>`;
 }
 
 function renderTrustReminder() {
@@ -708,6 +777,11 @@ function renderDetail() {
         ${detailRows(pot)}
       </article>
 
+      ${escrowNotice(pot, {
+        title: '이 팟의 정산 보호 방식',
+        description: '안전결제와 에스크로 기반 보호로 참여자 결제부터 방장 정산 완료까지 같은 흐름에서 확인해요.'
+      })}
+
       ${timelineCard(pot)}
 
       <div class="fixed-action">
@@ -803,7 +877,7 @@ function renderChat() {
   const chat = state.chats[pot.id] || { messages: [], notice: '' };
   const isHost = pot.host.id === state.user.id;
   const myMembership = currentMember(pot);
-  const shouldPay = Boolean(myMembership && !myMembership.paid && pot.settlementStage === '정산 요청됨');
+  const shouldPay = Boolean(myMembership && !myMembership.paid && settlementProgressStage(pot) === 'participant_payment' && pot.settlementStage !== '정산 대기');
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -815,15 +889,19 @@ function renderChat() {
         <span class="status-pill">${pot.settlementStage}</span>
       </header>
 
-      ${stageTrack(pot.settlementStage)}
+      ${stageTrack(pot)}
 
       ${isHost ? `
         <div class="host-actions">
           <button type="button" data-close-pot="${pot.id}">모집 마감</button>
-          <button type="button" data-route="settlement" data-select-pot="${pot.id}">정산 요청</button>
+          ${hostSettlementAction(pot)}
           <button type="button" data-manage="${pot.id}">대기 확인</button>
         </div>
       ` : ''}
+
+      ${escrowNotice(pot, {
+        title: '채팅에서도 안전결제 상태를 같이 확인해요'
+      })}
 
       <div class="announcement">${chat.notice || '채팅에서 일정과 정산 안내를 함께 확인해 주세요.'}</div>
 
@@ -863,7 +941,19 @@ function renderSettlement() {
   const participants = pot.participants || [];
   const totalAmount = state.settlementTotal || pot.perPersonAmount * Math.max(participants.length, 1);
   const myMembership = currentMember(pot);
-  const shouldPay = Boolean(myMembership && !myMembership.paid && pot.settlementStage === '정산 요청됨');
+  const stage = settlementProgressStage(pot);
+  const shouldPay = Boolean(myMembership && !myMembership.paid && stage === 'participant_payment' && pot.settlementStage !== '정산 대기');
+  const hostAction = isHost
+    ? (() => {
+      if (pot.settlementStage === '정산 대기') {
+        return `<button class="gradient-button full-button" type="button" data-request-settlement="${pot.id}">정산 요청 보내기</button>`;
+      }
+      if (stage === 'funds_held' || stage === 'service_complete') {
+        return hostSettlementAction(pot).replace('<button type="button"', '<button class="gradient-button full-button" type="button"');
+      }
+      return '';
+    })()
+    : '';
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -877,7 +967,7 @@ function renderSettlement() {
         <p>누가 결제했고, 누가 아직 대기 중인지 실시간처럼 한눈에 보여줘요.</p>
       </div>
 
-      ${stageTrack(pot.settlementStage)}
+      ${stageTrack(pot)}
 
       <article class="glass-card">
         ${isHost ? `
@@ -892,9 +982,12 @@ function renderSettlement() {
         <div class="info-row"><span>1인당 금액</span><strong>${won(Math.ceil(totalAmount / Math.max(participants.length, 1)))}</strong></div>
       </article>
 
-      ${isHost && pot.settlementStage === '정산 대기' ? `
-        <button class="gradient-button full-button" type="button" data-request-settlement="${pot.id}">정산 요청 보내기</button>
-      ` : ''}
+      ${escrowNotice(pot, {
+        title: '정산 금액이 어떻게 보호되는지 보여줘요',
+        description: '안전결제와 에스크로 기반 보호로 참여자 결제, 금액 보관, 최종 정산 지급까지 같은 흐름에서 확인해요.'
+      })}
+
+      ${hostAction}
 
       ${shouldPay ? `
         <button class="gradient-button full-button" type="button" data-pay-settlement="${pot.id}">내 몫 결제하기</button>
@@ -922,6 +1015,7 @@ function renderSettlement() {
 
 function renderMy() {
   const wallet = core.buildWalletSections(state);
+  const trustPot = potById(state.selectedPotId || state.activeChatId || (state.pots[0] && state.pots[0].id));
 
   app.innerHTML = `
     <section class="screen screen-enter">
@@ -935,6 +1029,11 @@ function renderMy() {
         <strong class="price-xl">${won(state.pointBalance)}</strong>
         <p>안전 정산 대기 금액과 충전 내역을 함께 확인할 수 있어요.</p>
       </article>
+
+      ${trustPot ? escrowNotice(trustPot, {
+        title: '안전결제 보호와 포인트 적립을 같이 확인해요',
+        description: '에스크로 기반 보호, 안전결제 진행 상태, 네이버페이 포인트 적립 안내를 My 결제에서 바로 이어서 보여줘요.'
+      }) : ''}
 
       <div class="wallet-quick-charge">
         ${state.chargeOptions.map((amount) => `
@@ -1057,6 +1156,7 @@ app.addEventListener('click', (event) => {
   const confirmJoin = event.target.closest('[data-confirm-join]');
   const chargeButton = event.target.closest('[data-charge]');
   const requestSettlementButton = event.target.closest('[data-request-settlement]');
+  const advanceEscrowButton = event.target.closest('[data-advance-escrow]');
   const remindButton = event.target.closest('[data-remind]');
   const sendMessageButton = event.target.closest('[data-send-message]');
   const closePotButton = event.target.closest('[data-close-pot]');
@@ -1179,6 +1279,21 @@ app.addEventListener('click', (event) => {
     state = core.requestSettlement(state, requestSettlementButton.dataset.requestSettlement, state.settlementTotal);
     showToast('정산 요청을 보냈어요. 채팅방과 My 결제에서 상태가 함께 갱신됩니다.');
     setRoute('chat', requestSettlementButton.dataset.requestSettlement);
+    return;
+  }
+
+  if (advanceEscrowButton) {
+    state = core.advanceEscrowStage(
+      state,
+      advanceEscrowButton.dataset.advanceEscrow,
+      advanceEscrowButton.dataset.nextEscrow
+    );
+    showToast(
+      advanceEscrowButton.dataset.nextEscrow === 'service_complete'
+        ? '서비스 이용 완료 단계로 넘어갔어요.'
+        : '최종 정산 지급까지 완료됐어요.'
+    );
+    setRoute('settlement', advanceEscrowButton.dataset.advanceEscrow);
     return;
   }
 
