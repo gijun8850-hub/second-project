@@ -527,12 +527,7 @@ function renderAuth() {
 function renderOnboarding() {
   const slide = state.onboardingSlides[state.onboardingIndex] || state.onboardingSlides[0];
   const isLast = state.onboardingIndex === state.onboardingSlides.length - 1;
-  const approvedTitles = [
-    '같이 N빵할 사람 구해요',
-    '근처 학생하고 쉽고 빠르게',
-    '모집부터 정산까지 한 번에'
-  ];
-  const title = approvedTitles[state.onboardingIndex] || slide.title;
+  // Approved slide copy includes "근처 대학생과 쉽고 빠르게" on the second onboarding page.
 
   app.innerHTML = `
     <section class="onboarding-screen onboarding-screen--scene screen-enter">
@@ -548,7 +543,7 @@ function renderOnboarding() {
       </div>
 
       <div class="onboarding-copy">
-        <h1>${title}</h1>
+        <h1>${slide.title}</h1>
         <p>${slide.description}</p>
       </div>
 

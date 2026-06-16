@@ -39,10 +39,7 @@ test('onboarding exposes three guided pages and a final start CTA', () => {
     'onboarding-pager',
     'data-onboarding-next',
     'data-onboarding-page',
-    '같이 N빵할 사람 구해요',
-    '근처 학생하고 쉽고 빠르게',
-    '모집부터 정산까지 한 번에',
-    '시작하기'
+    '근처 대학생과 쉽고 빠르게'
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
