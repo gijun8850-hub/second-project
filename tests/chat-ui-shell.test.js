@@ -34,19 +34,38 @@ test('chat renderer keeps profile rows, host badge, own-message alignment, and s
   });
 });
 
-test('onboarding exposes scene cards, category shortcuts, login flow, and IME-friendly search handling', () => {
+test('onboarding exposes three guided pages and a final start CTA', () => {
   [
-    'onboarding-screen--scene',
-    'onboarding-scene-layer',
-    'onboarding-header',
-    'onboarding-photo-card',
-    'onboarding-photo',
-    'data-onboarding-category',
-    'onboarding-login-link',
-    'renderLogin',
-    'login-form',
-    'login-id',
-    'login-password',
+    'onboarding-pager',
+    'data-onboarding-next',
+    'data-onboarding-page',
+    '같이 N빵할 사람 구해요',
+    '근처 학생하고 쉽고 빠르게',
+    '모집부터 정산까지 한 번에',
+    '시작하기'
+  ].forEach((token) => {
+    assert.ok(app.includes(token), `Missing token: ${token}`);
+  });
+});
+
+test('auth shell exposes login signup tabs and realistic account controls', () => {
+  [
+    'renderAuth',
+    'auth-tabs',
+    'data-auth-tab',
+    'signup-form',
+    'signup-email',
+    'signup-password-confirm',
+    'remember-login',
+    'find-account-link',
+    '카카오로 시작하기'
+  ].forEach((token) => {
+    assert.ok(app.includes(token), `Missing token: ${token}`);
+  });
+});
+
+test('home search keeps IME-friendly handling', () => {
+  [
     'isSearchComposing',
     'compositionstart',
     'compositionend',
@@ -54,9 +73,6 @@ test('onboarding exposes scene cards, category shortcuts, login flow, and IME-fr
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
-
-  assert.doesNotMatch(app, /data-onboarding-recommendation/);
-  assert.doesNotMatch(app, /onboarding-action-card--spotlight/);
 });
 
 test('home cards expose compact CTA sizing tokens for join and chat actions', () => {

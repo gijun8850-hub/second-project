@@ -449,6 +449,127 @@ function renderLogin() {
   `;
 }
 
+function renderLoginPanel() {
+  return `
+    <div class="login-card glass-card">
+      <div class="page-title">
+        <h1>로그인</h1>
+        <p>ID와 비밀번호를 입력하고 바로 팟 탐색과 정산 흐름으로 이어가세요.</p>
+      </div>
+
+      <form id="login-form" class="form-stack login-form">
+        <label class="form-field">
+          <span>ID</span>
+          <input id="login-id" name="loginId" required placeholder="potmate_student" autocomplete="username">
+        </label>
+        <label class="form-field">
+          <span>Password</span>
+          <input id="login-password" name="password" type="password" required placeholder="비밀번호 입력" autocomplete="current-password">
+        </label>
+        <label class="form-field remember-login">
+          <span>로그인 상태 유지</span>
+          <input id="remember-login" name="rememberLogin" type="checkbox">
+        </label>
+        <button class="gradient-button full-button" type="submit">로그인</button>
+      </form>
+
+      <button class="secondary-button full-button" type="button">카카오로 시작하기</button>
+      <button class="ghost-button find-account-link" type="button">아이디/비밀번호 찾기</button>
+    </div>
+  `;
+}
+
+function renderSignupPanel() {
+  return `
+    <div class="login-card glass-card">
+      <div class="page-title">
+        <h1>회원가입</h1>
+        <p>학교 커뮤니티에 맞는 계정을 만들고 안전한 N빵 흐름으로 들어오세요.</p>
+      </div>
+
+      <form id="signup-form" class="form-stack signup-form">
+        <label class="form-field">
+          <span>이메일</span>
+          <input id="signup-email" name="email" type="email" required placeholder="student@gachon.ac.kr" autocomplete="email">
+        </label>
+        <label class="form-field">
+          <span>비밀번호</span>
+          <input id="signup-password" name="password" type="password" required placeholder="8자 이상" autocomplete="new-password">
+        </label>
+        <label class="form-field">
+          <span>비밀번호 확인</span>
+          <input id="signup-password-confirm" name="passwordConfirm" type="password" required placeholder="비밀번호 다시 입력" autocomplete="new-password">
+        </label>
+        <button class="gradient-button full-button" type="submit">회원가입</button>
+      </form>
+
+      <button class="secondary-button full-button" type="button">카카오로 시작하기</button>
+    </div>
+  `;
+}
+
+function renderAuth() {
+  const isLogin = state.authMode === 'login';
+
+  app.innerHTML = `
+    <section class="screen screen-enter auth-screen">
+      ${backButton('onboarding')}
+      <div class="auth-tabs">
+        <button type="button" class="${isLogin ? 'is-active' : ''}" data-auth-tab="login">로그인</button>
+        <button type="button" class="${isLogin ? '' : 'is-active'}" data-auth-tab="signup">회원가입</button>
+      </div>
+
+      ${isLogin ? renderLoginPanel() : renderSignupPanel()}
+    </section>
+  `;
+}
+
+function renderOnboarding() {
+  const slide = state.onboardingSlides[state.onboardingIndex] || state.onboardingSlides[0];
+  const isLast = state.onboardingIndex === state.onboardingSlides.length - 1;
+  const approvedTitles = [
+    '같이 N빵할 사람 구해요',
+    '근처 학생하고 쉽고 빠르게',
+    '모집부터 정산까지 한 번에'
+  ];
+  const title = approvedTitles[state.onboardingIndex] || slide.title;
+
+  app.innerHTML = `
+    <section class="onboarding-screen onboarding-screen--scene screen-enter">
+      <div class="onboarding-pager">
+        ${state.onboardingSlides.map((item, index) => `
+          <button
+            type="button"
+            class="onboarding-dot ${index === state.onboardingIndex ? 'is-active' : ''}"
+            data-onboarding-page="${index}"
+            aria-label="${index + 1}번 온보딩"
+          ></button>
+        `).join('')}
+      </div>
+
+      <div class="onboarding-copy">
+        <h1>${title}</h1>
+        <p>${slide.description}</p>
+      </div>
+
+      <div class="onboarding-photo-card onboarding-graphic onboarding-graphic--${slide.graphic}" aria-hidden="true">
+        <div class="onboarding-photo"></div>
+      </div>
+
+      <div class="onboarding-actions">
+        ${isLast
+          ? '<button class="gradient-button full-button onboarding-start-button" type="button" data-route="auth">시작하기</button>'
+          : '<button class="secondary-button full-button" type="button" data-onboarding-next="next">다음</button>'}
+      </div>
+    </section>
+  `;
+}
+
+function renderLogin() {
+  state.authMode = 'login';
+  renderAuth();
+}
+
 function renderHome(options = {}) {
   const animate = options.animate !== false;
   const sections = getHomeSections();
@@ -876,6 +997,9 @@ function render() {
     case 'create':
       renderCreate();
       break;
+    case 'auth':
+      renderAuth();
+      break;
     case 'login':
       renderLogin();
       break;
@@ -899,10 +1023,31 @@ app.addEventListener('click', (event) => {
   const openCard = event.target.closest('[data-pot-id]');
   const selectPotButton = event.target.closest('[data-select-pot]');
   const onboardingCategoryButton = event.target.closest('[data-onboarding-category]');
+  const onboardingNextButton = event.target.closest('[data-onboarding-next]');
+  const onboardingPageButton = event.target.closest('[data-onboarding-page]');
+  const authTabButton = event.target.closest('[data-auth-tab]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
     setRoute('home');
+    return;
+  }
+
+  if (onboardingNextButton) {
+    state.onboardingIndex = Math.min(state.onboardingIndex + 1, state.onboardingSlides.length - 1);
+    render();
+    return;
+  }
+
+  if (onboardingPageButton) {
+    state.onboardingIndex = Number(onboardingPageButton.dataset.onboardingPage);
+    render();
+    return;
+  }
+
+  if (authTabButton) {
+    state.authMode = authTabButton.dataset.authTab;
+    renderAuth();
     return;
   }
 
