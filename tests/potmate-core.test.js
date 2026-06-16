@@ -158,6 +158,7 @@ test('createPot normalizes trust badges, category detail, and default recruitmen
   assert.equal(pot.id, 'new-pot');
   assert.equal(pot.recruitStatus, '모집중');
   assert.equal(pot.settlementStage, '정산 대기');
+  assert.equal(pot.escrowStage, 'participant_payment');
   assert.equal(pot.joinRadiusMeters, 500);
   assert.ok(pot.trustBadges.includes('안전정산'));
   assert.equal(pot.detail.serviceName, '넷플릭스');
@@ -244,6 +245,7 @@ test('markParticipantPaid deducts balance for the current user and completes set
 
   assert.equal(next.pointBalance, 23750);
   assert.equal(next.pots[0].settlementStage, '정산 완료');
+  assert.equal(next.pots[0].escrowStage, 'host_settled');
   assert.equal(next.payments[0].status, '정산 완료');
   assert.equal(next.settlements[0].status, '정산 완료');
 });
@@ -281,7 +283,12 @@ test('buildSettlementStages marks the current progress correctly', () => {
   assert.deepEqual(stages.map((stage) => stage.state), ['done', 'current', 'pending', 'pending']);
 });
 
-test('buildVerificationSummary returns the verified student trust copy', () => {
+test('buildSettlementStages accepts the escrowStage source-of-truth key', () => {
+  const stages = buildSettlementStages('funds_held');
+  assert.deepEqual(stages.map((stage) => stage.state), ['done', 'current', 'pending', 'pending']);
+});
+
+test('buildVerificationSummary returns the verified naver student trust copy', () => {
   assert.deepEqual(
     buildVerificationSummary({ status: 'verified', method: 'naver_student_id', skipped: false }),
     {
@@ -292,31 +299,61 @@ test('buildVerificationSummary returns the verified student trust copy', () => {
   );
 });
 
+test('buildVerificationSummary returns the verified school email trust copy', () => {
+  assert.deepEqual(
+    buildVerificationSummary({ status: 'verified', method: 'school_email', skipped: false }),
+    {
+      badge: '학교 이메일 인증 완료',
+      headline: '인증된 캠퍼스 메이트',
+      helper: '학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요.'
+    }
+  );
+});
+
+test('buildVerificationSummary returns the skipped verification copy', () => {
+  assert.deepEqual(
+    buildVerificationSummary({ status: 'unverified', method: null, skipped: true }),
+    {
+      badge: '인증은 나중에',
+      headline: '둘러보기 모드로 시작했어요',
+      helper: '원할 때 학생 인증을 마치고 더 안전한 거래 보호를 받을 수 있어요.'
+    }
+  );
+});
+
+test('buildVerificationSummary returns the default unverified copy', () => {
+  assert.deepEqual(
+    buildVerificationSummary({ status: 'unverified', method: null, skipped: false }),
+    {
+      badge: '학생 인증 전',
+      headline: '캠퍼스 메이트 인증 필요',
+      helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
+    }
+  );
+});
+
 test('PotMateSeed uses the approved auth defaults and onboarding trust copy', () => {
   const seed = loadPotMateSeed();
 
   assert.equal(seed.authMode, 'login');
   assert.deepEqual(normalizeJson(seed.verification), { status: 'unverified', method: null, skipped: false });
-  assert.deepEqual(normalizeJson(seed.onboardingSlides), [
-    {
-      title: '같이 N빵할 사람 구해요',
-      description: '배달, 택시, 구독까지 캠퍼스 메이트와 함께 나누고 더 가볍게 이용하세요.',
-      graphic: 'categories'
-    },
-    {
-      title: '근처 대학생과 쉽고 빠르게',
-      description: '위치 기반 매칭으로 내 주변 대학생들과 안전하게 연결됩니다.',
-      graphic: 'campus-map'
-    },
-    {
-      title: '모집부터 정산까지 한 번에',
-      description: '채팅, 정산, 네이버페이 결제까지 앱 안에서 모두 해결하세요.',
-      graphic: 'recruit-chat-pay'
-    }
-  ]);
-  assert.deepEqual(normalizeJson(seed.trustHighlights), [
-    '네이버 학생증으로 대학생 인증',
-    '위치 기반으로 내 주변 학생 연결',
-    '정산 전 금액 보관으로 더 안전한 거래'
-  ]);
+  assert.equal(seed.onboardingSlides.length, 3);
+  assert.deepEqual(normalizeJson(seed.onboardingSlides[0]), {
+    title: '같이 N빵할 사람 구해요',
+    description: '배달, 택시, 구독까지 캠퍼스 메이트와 함께 나누고 더 가볍게 이용하세요.',
+    graphic: 'categories'
+  });
+  assert.deepEqual(normalizeJson(seed.onboardingSlides[1]), {
+    title: '근처 대학생과 쉽고 빠르게',
+    description: '위치 기반 매칭으로 내 주변 대학생들과 안전하게 연결됩니다.',
+    graphic: 'campus-map'
+  });
+  assert.deepEqual(normalizeJson(seed.onboardingSlides[2]), {
+    title: '모집부터 정산까지 한 번에',
+    description: '채팅, 정산, 네이버페이 결제까지 앱 안에서 모두 해결하세요.',
+    graphic: 'recruit-chat-pay'
+  });
+  assert.equal(seed.trustHighlights[0], '네이버 학생증으로 대학생 인증');
+  assert.equal(seed.trustHighlights[1], '위치 기반으로 내 주변 학생 연결');
+  assert.equal(seed.trustHighlights[2], '정산 전 금액 보관으로 더 안전한 거래');
 });

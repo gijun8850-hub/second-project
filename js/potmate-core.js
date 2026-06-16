@@ -23,6 +23,7 @@
   const SETTLEMENT_STAGE_INDEX = {
     '정산 대기': 0,
     '참여자 결제': 0,
+    participant_payment: 0,
     '정산 요청됨': 1,
     funds_held: 1,
     '금액 보관': 1,
@@ -31,6 +32,11 @@
     '정산 완료': 3,
     payout_complete: 3,
     '방장 정산 완료': 3
+  };
+  const ESCROW_STAGE_BY_SETTLEMENT_STAGE = {
+    '정산 대기': 'participant_payment',
+    '정산 요청됨': 'funds_held',
+    '정산 완료': 'host_settled'
   };
 
   function clone(value) {
@@ -148,11 +154,32 @@
       };
     }
 
+    if (verification && verification.status === 'verified' && verification.method === 'school_email' && !verification.skipped) {
+      return {
+        badge: '학교 이메일 인증 완료',
+        headline: '인증된 캠퍼스 메이트',
+        helper: '학교 이메일을 확인한 학생들과 더 신뢰도 있게 연결할 수 있어요.'
+      };
+    }
+
+    if (verification && verification.skipped) {
+      return {
+        badge: '인증은 나중에',
+        headline: '둘러보기 모드로 시작했어요',
+        helper: '원할 때 학생 인증을 마치고 더 안전한 거래 보호를 받을 수 있어요.'
+      };
+    }
+
     return {
       badge: '학생 인증 전',
       headline: '캠퍼스 메이트 인증 필요',
       helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
     };
+  }
+
+  function normalizeEscrowStage(stageOrEscrow) {
+    if (ESCROW_STAGE_BY_SETTLEMENT_STAGE[stageOrEscrow]) return ESCROW_STAGE_BY_SETTLEMENT_STAGE[stageOrEscrow];
+    return stageOrEscrow || 'participant_payment';
   }
 
   function buildDetail(category, input) {
@@ -218,7 +245,7 @@
       deadlineLabel: input.deadlineLabel || input.deadline || '오늘 22:00',
       recruitStatus: '모집중',
       settlementStage: '정산 대기',
-      escrowStage: input.escrowStage || 'payment_pending',
+      escrowStage: normalizeEscrowStage(input.escrowStage || input.settlementStage || 'participant_payment'),
       urgencyLabel: input.urgencyLabel || '모집 새로 시작',
       urgencyRank: Number(input.urgencyRank || 3),
       trustBadges: buildTrustBadges(category, input),
@@ -273,6 +300,7 @@
 
   function updatePotStage(pot, stage) {
     pot.settlementStage = stage;
+    pot.escrowStage = normalizeEscrowStage(stage);
     pot.timeline = buildSettlementStages(stage).map((item) => ({ label: item.label, state: item.state }));
   }
 
