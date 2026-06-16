@@ -1,4 +1,29 @@
 window.PotMateSeed = {
+  hasSeenOnboarding: false,
+  onboardingIndex: 0,
+  authMode: 'student_verification',
+  verification: {
+    status: 'verified',
+    method: 'naver_student_id',
+    skipped: false
+  },
+  onboardingSlides: [
+    {
+      id: 'campus-nearby',
+      title: '근처 학생들과 빠르게 팟을 만들어요',
+      description: '캠퍼스 주변 메이트를 확인하고 바로 함께 주문하거나 이동할 수 있어요.'
+    },
+    {
+      id: 'escrow-safe',
+      title: '정산금은 맡겨두고 이용 후 정산해요',
+      description: '참여자 결제 후 금액을 보관하고 서비스 이용이 끝나면 방장에게 정산해요.'
+    }
+  ],
+  trustHighlights: [
+    '네이버 학생증 인증 완료',
+    '같은 학교 학생만 더 안전하게 연결',
+    '에스크로 정산 단계로 거래 신뢰 강화'
+  ],
   user: {
     id: 'me',
     name: '민아',

@@ -19,7 +19,19 @@
     '기타팟': { joinRadiusMeters: 500, subCategory: '공동구매' }
   };
 
-  const SETTLEMENT_STAGES = ['정산 대기', '정산 요청됨', '정산 완료'];
+  const SETTLEMENT_STAGES = ['참여자 결제', '금액 보관', '서비스 이용 완료', '방장 정산 완료'];
+  const SETTLEMENT_STAGE_INDEX = {
+    '정산 대기': 0,
+    '참여자 결제': 0,
+    '정산 요청됨': 1,
+    funds_held: 1,
+    '금액 보관': 1,
+    service_complete: 2,
+    '서비스 이용 완료': 2,
+    '정산 완료': 3,
+    payout_complete: 3,
+    '방장 정산 완료': 3
+  };
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -127,6 +139,22 @@
     return base;
   }
 
+  function buildVerificationSummary(verification) {
+    if (verification && verification.status === 'verified' && verification.method === 'naver_student_id' && !verification.skipped) {
+      return {
+        badge: '네이버 학생증 인증 완료',
+        headline: '검증된 캠퍼스 메이트',
+        helper: '같은 학교 학생만 더 안전하게 연결할 수 있어요.'
+      };
+    }
+
+    return {
+      badge: '학생 인증 전',
+      headline: '캠퍼스 메이트 인증 필요',
+      helper: '학생 인증을 마치면 더 안전하게 팟을 만들고 참여할 수 있어요.'
+    };
+  }
+
   function buildDetail(category, input) {
     const detail = {};
     (CATEGORY_FIELDS[category] || []).forEach((field) => {
@@ -190,6 +218,7 @@
       deadlineLabel: input.deadlineLabel || input.deadline || '오늘 22:00',
       recruitStatus: '모집중',
       settlementStage: '정산 대기',
+      escrowStage: input.escrowStage || 'payment_pending',
       urgencyLabel: input.urgencyLabel || '모집 새로 시작',
       urgencyRank: Number(input.urgencyRank || 3),
       trustBadges: buildTrustBadges(category, input),
@@ -310,6 +339,7 @@
       ...member,
       paid: member.id === pot.host.id
     }));
+    pot.escrowStage = 'funds_held';
     updatePotStage(pot, '정산 요청됨');
 
     next.settlements = next.settlements || [];
@@ -430,7 +460,12 @@
   }
 
   function buildSettlementStages(currentStage) {
-    const currentIndex = Math.max(SETTLEMENT_STAGES.indexOf(currentStage), 0);
+    const currentIndex = Math.max(
+      Object.prototype.hasOwnProperty.call(SETTLEMENT_STAGE_INDEX, currentStage)
+        ? SETTLEMENT_STAGE_INDEX[currentStage]
+        : 0,
+      0
+    );
     return SETTLEMENT_STAGES.map((label, index) => ({
       label,
       state: index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'pending'
@@ -464,6 +499,7 @@
     getPaymentHistory,
     buildWalletSections,
     buildSettlementStages,
+    buildVerificationSummary,
     sendChatMessage,
     updateRecruitmentStatus
   };

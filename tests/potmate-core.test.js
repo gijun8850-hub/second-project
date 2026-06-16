@@ -14,7 +14,8 @@ const {
   markParticipantPaid,
   getPaymentHistory,
   buildWalletSections,
-  buildSettlementStages
+  buildSettlementStages,
+  buildVerificationSummary
 } = require('../js/potmate-core.js');
 
 const pots = [
@@ -195,6 +196,7 @@ test('requestSettlement computes per-person payment and emits a system message',
   const next = requestSettlement(state, 'pot-taxi-near', 27000);
 
   assert.equal(next.pots[0].settlementStage, '정산 요청됨');
+  assert.equal(next.pots[0].escrowStage, 'funds_held');
   assert.equal(next.pots[0].perPersonAmount, 9000);
   assert.equal(next.settlements[0].amount, 9000);
   assert.match(next.chats['pot-taxi-near'].messages.at(-1).text, /정산 요청/);
@@ -256,5 +258,22 @@ test('buildWalletSections groups pending, completed, and recent history', () => 
 
 test('buildSettlementStages marks the current progress correctly', () => {
   const stages = buildSettlementStages('정산 요청됨');
-  assert.deepEqual(stages.map((stage) => stage.state), ['done', 'current', 'pending']);
+  assert.deepEqual(stages.map((stage) => stage.label), [
+    '참여자 결제',
+    '금액 보관',
+    '서비스 이용 완료',
+    '방장 정산 완료'
+  ]);
+  assert.deepEqual(stages.map((stage) => stage.state), ['done', 'current', 'pending', 'pending']);
+});
+
+test('buildVerificationSummary returns the verified student trust copy', () => {
+  assert.deepEqual(
+    buildVerificationSummary({ status: 'verified', method: 'naver_student_id', skipped: false }),
+    {
+      badge: '네이버 학생증 인증 완료',
+      headline: '검증된 캠퍼스 메이트',
+      helper: '같은 학교 학생만 더 안전하게 연결할 수 있어요.'
+    }
+  );
 });
