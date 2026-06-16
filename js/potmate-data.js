@@ -1,28 +1,33 @@
 window.PotMateSeed = {
   hasSeenOnboarding: false,
   onboardingIndex: 0,
-  authMode: 'student_verification',
+  authMode: 'login',
   verification: {
-    status: 'verified',
-    method: 'naver_student_id',
+    status: 'unverified',
+    method: null,
     skipped: false
   },
   onboardingSlides: [
     {
-      id: 'campus-nearby',
-      title: '근처 학생들과 빠르게 팟을 만들어요',
-      description: '캠퍼스 주변 메이트를 확인하고 바로 함께 주문하거나 이동할 수 있어요.'
+      title: '같이 N빵할 사람 구해요',
+      description: '배달, 택시, 구독까지 캠퍼스 메이트와 함께 나누고 더 가볍게 이용하세요.',
+      graphic: 'categories'
     },
     {
-      id: 'escrow-safe',
-      title: '정산금은 맡겨두고 이용 후 정산해요',
-      description: '참여자 결제 후 금액을 보관하고 서비스 이용이 끝나면 방장에게 정산해요.'
+      title: '근처 대학생과 쉽고 빠르게',
+      description: '위치 기반 매칭으로 내 주변 대학생들과 안전하게 연결됩니다.',
+      graphic: 'campus-map'
+    },
+    {
+      title: '모집부터 정산까지 한 번에',
+      description: '채팅, 정산, 네이버페이 결제까지 앱 안에서 모두 해결하세요.',
+      graphic: 'recruit-chat-pay'
     }
   ],
   trustHighlights: [
-    '네이버 학생증 인증 완료',
-    '같은 학교 학생만 더 안전하게 연결',
-    '에스크로 정산 단계로 거래 신뢰 강화'
+    '네이버 학생증으로 대학생 인증',
+    '위치 기반으로 내 주변 학생 연결',
+    '정산 전 금액 보관으로 더 안전한 거래'
   ],
   user: {
     id: 'me',

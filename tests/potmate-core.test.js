@@ -1,5 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 
 const {
   filterPots,
@@ -17,6 +20,17 @@ const {
   buildSettlementStages,
   buildVerificationSummary
 } = require('../js/potmate-core.js');
+
+function loadPotMateSeed() {
+  const source = fs.readFileSync(path.join(__dirname, '../js/potmate-data.js'), 'utf8');
+  const context = { window: {} };
+  vm.runInNewContext(source, context);
+  return context.window.PotMateSeed;
+}
+
+function normalizeJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
 
 const pots = [
   {
@@ -276,4 +290,33 @@ test('buildVerificationSummary returns the verified student trust copy', () => {
       helper: '같은 학교 학생만 더 안전하게 연결할 수 있어요.'
     }
   );
+});
+
+test('PotMateSeed uses the approved auth defaults and onboarding trust copy', () => {
+  const seed = loadPotMateSeed();
+
+  assert.equal(seed.authMode, 'login');
+  assert.deepEqual(normalizeJson(seed.verification), { status: 'unverified', method: null, skipped: false });
+  assert.deepEqual(normalizeJson(seed.onboardingSlides), [
+    {
+      title: '같이 N빵할 사람 구해요',
+      description: '배달, 택시, 구독까지 캠퍼스 메이트와 함께 나누고 더 가볍게 이용하세요.',
+      graphic: 'categories'
+    },
+    {
+      title: '근처 대학생과 쉽고 빠르게',
+      description: '위치 기반 매칭으로 내 주변 대학생들과 안전하게 연결됩니다.',
+      graphic: 'campus-map'
+    },
+    {
+      title: '모집부터 정산까지 한 번에',
+      description: '채팅, 정산, 네이버페이 결제까지 앱 안에서 모두 해결하세요.',
+      graphic: 'recruit-chat-pay'
+    }
+  ]);
+  assert.deepEqual(normalizeJson(seed.trustHighlights), [
+    '네이버 학생증으로 대학생 인증',
+    '위치 기반으로 내 주변 학생 연결',
+    '정산 전 금액 보관으로 더 안전한 거래'
+  ]);
 });
