@@ -63,6 +63,16 @@ test('onboarding exposes pager shell tokens and approved seeded titles', () => {
   );
 });
 
+test('entry flow source keeps one onboarding renderer and SPA signup submit handling', () => {
+  assert.equal((app.match(/function renderOnboarding\(/g) || []).length, 1);
+  assert.equal((app.match(/function renderLogin\(/g) || []).length, 1);
+  assert.match(app, /event\.target\.id === 'signup-form'/);
+  assert.match(app, /event\.preventDefault\(\);/);
+  assert.match(app, /showToast\(/);
+  assert.doesNotMatch(app, /onboarding-chip-block/);
+  assert.doesNotMatch(app, /onboarding-login-link/);
+});
+
 test('auth shell exposes login signup tabs and realistic account controls', () => {
   [
     'renderAuth',

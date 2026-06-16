@@ -1,4 +1,4 @@
-const core = window.PotMateCore;
+﻿const core = window.PotMateCore;
 const categories = ['전체', '배달팟', '택시팟', '구독팟', '기타팟'];
 const createCategories = categories.slice(1);
 
@@ -381,71 +381,6 @@ function categoryFields(category) {
     <label class="form-field"><span>모임 목적</span><input name="purpose" placeholder="예: 시험기간 간식 공동구매"></label>
     <label class="form-field"><span>만나는 장소</span><input name="place" placeholder="예: 중앙도서관 라운지"></label>
     <label class="form-field"><span>예상 총액</span><input name="estimatedAmount" placeholder="예: 총 24,000원 예상"></label>
-  `;
-}
-
-function renderOnboarding() {
-  app.innerHTML = `
-    <section class="onboarding-screen onboarding-screen--scene screen-enter">
-      <div class="onboarding-scene-layer" aria-hidden="true" style="background-image: url('./images/onboarding-campus.png');"></div>
-      <div class="onboarding-header">
-        <div class="onboarding-brand">
-          <span class="brand-icon">P</span>
-          <strong>PotMate</strong>
-        </div>
-        <button class="onboarding-alert" type="button" aria-label="알림">
-          <span>🔔</span>
-          <i></i>
-        </button>
-      </div>
-
-      <div class="onboarding-copy">
-        <h1 aria-label="근처 팟, 바로 합류">근처 팟,<br><span>바로 합류</span></h1>
-        <p>캠퍼스 N빵을 더 쉽고 빠르게</p>
-      </div>
-
-      <div class="onboarding-photo-card" aria-hidden="true">
-        <div class="onboarding-photo"></div>
-      </div>
-
-      <div class="onboarding-chip-block">
-        <strong class="onboarding-chip-title">어떤 팟을 찾고 있나요?</strong>
-        <div class="onboarding-chip-row">
-          ${createCategories.map((category, index) => `
-            <button type="button" class="onboarding-chip onboarding-chip-button ${index === 0 ? 'is-active' : ''}" data-onboarding-category="${category}">${category}</button>
-          `).join('')}
-        </div>
-      </div>
-
-      <button class="gradient-button full-button onboarding-start-button" type="button" data-route="home">바로 시작하기</button>
-      <p class="onboarding-login-note">이미 계정이 있으신가요? <button type="button" class="onboarding-login-link" data-route="login">로그인</button></p>
-    </section>
-  `;
-}
-
-function renderLogin() {
-  app.innerHTML = `
-    <section class="screen screen-enter">
-      ${backButton('onboarding')}
-      <div class="page-title">
-        <h1>로그인</h1>
-        <p>ID와 비밀번호를 입력하고 팟 탐색과 정산 흐름으로 바로 이어가세요.</p>
-      </div>
-
-      <div class="login-card glass-card">
-        <form id="login-form" class="form-stack login-form">
-          <label class="form-field">
-            <span>ID</span>
-            <input id="login-id" name="loginId" required placeholder="potmate_student" autocomplete="username">
-          </label>
-          <label class="form-field">
-            <span>Password</span>
-            <input id="login-password" name="password" type="password" required placeholder="비밀번호 입력" autocomplete="current-password">
-          </label>
-          <button class="gradient-button full-button" type="submit">로그인</button>
-        </form>
-      </div>
-    </section>
   `;
 }
 
@@ -1215,6 +1150,15 @@ app.addEventListener('submit', (event) => {
     return;
   }
 
+  if (event.target.id === 'signup-form') {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const email = String(formData.get('email') || '').trim();
+    showToast(`${email || 'Signup info'} saved. School verification is available in the next step.`);
+    state.authMode = 'login';
+    renderAuth();
+    return;
+  }
   if (event.target.id !== 'create-form') return;
   event.preventDefault();
 
