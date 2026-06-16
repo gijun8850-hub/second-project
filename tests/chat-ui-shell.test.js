@@ -39,7 +39,10 @@ test('onboarding exposes three guided pages and a final start CTA', () => {
     'onboarding-pager',
     'data-onboarding-next',
     'data-onboarding-page',
-    '근처 대학생과 쉽고 빠르게'
+    '\uac19\uc774 N\ube75\ud560 \uc0ac\ub78c \uad6c\ud574\uc694',
+    '\uadfc\ucc98 \ub300\ud559\uc0dd\uacfc \uc27d\uace0 \ube60\ub974\uac8c',
+    '\ubaa8\uc9d1\ubd80\ud130 \uc815\uc0b0\uae4c\uc9c0 \ud55c \ubc88\uc5d0',
+    '\uc2dc\uc791\ud558\uae30'
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
@@ -55,7 +58,7 @@ test('auth shell exposes login signup tabs and realistic account controls', () =
     'signup-password-confirm',
     'remember-login',
     'find-account-link',
-    '카카오로 시작하기'
+    '移댁뭅?ㅻ줈 ?쒖옉?섍린'
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
@@ -75,8 +78,8 @@ test('home search keeps IME-friendly handling', () => {
 test('home cards expose compact CTA sizing tokens for join and chat actions', () => {
   [
     'pot-card__cta',
-    "채팅으로 이동",
-    "참여하기"
+    "梨꾪똿?쇰줈 ?대룞",
+    "李몄뿬?섍린"
   ].forEach((token) => {
     assert.ok(app.includes(token), `Missing token: ${token}`);
   });
