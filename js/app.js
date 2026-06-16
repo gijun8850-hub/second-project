@@ -1154,7 +1154,17 @@ app.addEventListener('submit', (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const email = String(formData.get('email') || '').trim();
-    showToast(`${email || 'Signup info'} saved. School verification is available in the next step.`);
+    const password = String(formData.get('password') || '');
+    const passwordConfirm = String(formData.get('passwordConfirm') || '');
+    state.authMode = 'signup';
+
+    if (password !== passwordConfirm) {
+      showToast('비밀번호가 일치하지 않아요. 다시 확인해 주세요.');
+      renderAuth();
+      return;
+    }
+
+    showToast(`${email || '회원가입 정보'} 저장 완료. 로그인 후 계속할 수 있어요.`);
     state.authMode = 'login';
     renderAuth();
     return;
