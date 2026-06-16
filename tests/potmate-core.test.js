@@ -288,6 +288,11 @@ test('buildSettlementStages accepts the escrowStage source-of-truth key', () => 
   assert.deepEqual(stages.map((stage) => stage.state), ['done', 'current', 'pending', 'pending']);
 });
 
+test('buildSettlementStages accepts the terminal escrowStage key', () => {
+  const stages = buildSettlementStages('host_settled');
+  assert.deepEqual(stages.map((stage) => stage.state), ['done', 'done', 'done', 'current']);
+});
+
 test('buildVerificationSummary returns the verified naver student trust copy', () => {
   assert.deepEqual(
     buildVerificationSummary({ status: 'verified', method: 'naver_student_id', skipped: false }),

@@ -30,6 +30,7 @@
     service_complete: 2,
     '서비스 이용 완료': 2,
     '정산 완료': 3,
+    host_settled: 3,
     payout_complete: 3,
     '방장 정산 완료': 3
   };
