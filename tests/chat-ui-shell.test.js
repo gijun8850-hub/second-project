@@ -260,6 +260,30 @@ test('onboarding exposes pager shell tokens and approved seeded titles', () => {
   );
 });
 
+test('runtime onboarding shows the campus background scene and slide-specific illustrations', () => {
+  const harness = createHarness();
+
+  assert.match(harness.app.innerHTML, /onboarding-scene-layer/);
+  assert.match(harness.app.innerHTML, /images\/onboarding-campus\.png/);
+  assert.match(harness.app.innerHTML, /빠른 모집 카테고리/);
+
+  harness.dispatchClick({
+    '[data-onboarding-next]': {
+      dataset: { onboardingNext: 'next' }
+    }
+  });
+
+  assert.match(harness.app.innerHTML, /내 주변 캠퍼스 맵/);
+
+  harness.dispatchClick({
+    '[data-onboarding-next]': {
+      dataset: { onboardingNext: 'next' }
+    }
+  });
+
+  assert.match(harness.app.innerHTML, /모집부터 정산까지/);
+});
+
 test('entry flow source keeps one onboarding renderer and SPA signup submit handling', () => {
   assert.equal((appSource.match(/function renderOnboarding\(/g) || []).length, 1);
   assert.equal((appSource.match(/function renderLogin\(/g) || []).length, 1);

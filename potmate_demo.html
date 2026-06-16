@@ -90,10 +90,11 @@ em {
 .onboarding-screen {
   position: relative;
   display: grid;
-  align-content: start;
-  gap: 18px;
+  grid-template-rows: auto auto minmax(340px, 1fr) auto auto;
+  align-content: stretch;
+  gap: 16px;
   min-height: 100vh;
-  padding: 30px 20px 28px;
+  padding: 42px 20px 34px;
   color: var(--color-ink);
   overflow: hidden;
   isolation: isolate;
@@ -111,7 +112,7 @@ em {
 
 .onboarding-screen--scene {
   background:
-    linear-gradient(180deg, rgba(247, 239, 252, 0.92) 0%, rgba(247, 239, 252, 0.92) 100%);
+    linear-gradient(180deg, rgba(247, 239, 252, 0.22) 0%, rgba(247, 239, 252, 0.5) 100%);
 }
 
 .onboarding-scene-layer,
@@ -122,12 +123,17 @@ em {
 
 .onboarding-scene-layer {
   z-index: 0;
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: 112% auto;
-  transform: scale(1.02);
-  filter: saturate(0.94) brightness(0.84);
+  overflow: hidden;
   pointer-events: none;
+}
+
+.onboarding-scene-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  transform: scale(1.03);
+  filter: saturate(0.98) brightness(0.97);
 }
 
 .onboarding-screen--scene::before {
@@ -135,7 +141,7 @@ em {
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(251, 244, 255, 0.52) 0%, rgba(251, 244, 255, 0.52) 100%);
+    linear-gradient(180deg, rgba(251, 244, 255, 0.34) 0%, rgba(251, 244, 255, 0.16) 30%, rgba(245, 233, 251, 0.38) 62%, rgba(242, 228, 249, 0.74) 100%);
 }
 
 .onboarding-header,
@@ -200,6 +206,10 @@ em {
   color: var(--color-main);
 }
 
+.onboarding-copy {
+  max-width: 286px;
+}
+
 .onboarding-copy p {
   margin: 10px 0 0;
   color: rgba(76, 57, 90, 0.9);
@@ -208,16 +218,170 @@ em {
 }
 
 .onboarding-photo-card {
-  min-height: 272px;
-  margin: -4px -20px -30px;
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: 360px;
+  margin: 8px 0 0;
   background: transparent;
   box-shadow: none;
 }
 
-.onboarding-photo {
-  width: 100%;
-  height: 100%;
-  background: transparent;
+.onboarding-graphic-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  box-shadow: 0 28px 60px rgba(76, 26, 104, 0.14);
+  backdrop-filter: blur(24px);
+}
+
+.onboarding-graphic-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.onboarding-graphic-eyebrow {
+  color: #9f39de;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.onboarding-graphic-copy strong {
+  font-size: 21px;
+  line-height: 1.22;
+  letter-spacing: -0.03em;
+}
+
+.onboarding-category-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.onboarding-category-card,
+.onboarding-flow-step {
+  display: grid;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.onboarding-category-card b,
+.onboarding-flow-step b {
+  font-size: 15px;
+}
+
+.onboarding-category-card small {
+  color: rgba(76, 57, 90, 0.8);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.onboarding-category-icon,
+.onboarding-flow-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-self: center;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gradient-main);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 10px 20px rgba(170, 1, 231, 0.24);
+}
+
+.onboarding-map-card {
+  position: relative;
+  min-height: 194px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.78);
+}
+
+.onboarding-map-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(170, 1, 231, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(170, 1, 231, 0.08) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.onboarding-map-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  border: 1px solid rgba(170, 1, 231, 0.22);
+  background: rgba(170, 1, 231, 0.06);
+  transform: translate(-50%, -50%);
+}
+
+.onboarding-map-pin {
+  position: absolute;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #882fd0;
+  box-shadow: 0 18px 32px rgba(112, 46, 157, 0.16);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.onboarding-map-pin--center {
+  left: 32%;
+  top: 52%;
+}
+
+.onboarding-map-pin--mate {
+  right: 16%;
+  top: 24%;
+}
+
+.onboarding-map-chip {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #7a31ba;
+  box-shadow: inset 0 0 0 1px rgba(239, 216, 248, 0.94);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.onboarding-flow-steps {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.onboarding-flow-arrow {
+  color: #963adb;
+  font-size: 22px;
+  font-weight: 900;
 }
 
 .onboarding-chip-block {
@@ -335,7 +499,7 @@ em {
 }
 
 .onboarding-support-row {
-  margin-top: -6px;
+  margin-top: 4px;
 }
 
 .student-chip {
@@ -2280,6 +2444,79 @@ function onboardingSupportChips(slide) {
   return (chipsByGraphic[slide.graphic] || []).map((item) => `<span class="student-chip">${item}</span>`).join('');
 }
 
+function renderOnboardingGraphic(slide) {
+  if (slide.graphic === 'campus-map') {
+    return `
+      <div class="onboarding-graphic-panel onboarding-graphic-panel--map">
+        <div class="onboarding-graphic-copy">
+          <span class="onboarding-graphic-eyebrow">내 주변 캠퍼스 맵</span>
+          <strong>근처 대학생과 바로 연결</strong>
+        </div>
+        <div class="onboarding-map-card">
+          <div class="onboarding-map-grid"></div>
+          <span class="onboarding-map-ring"></span>
+          <span class="onboarding-map-pin onboarding-map-pin--center">나</span>
+          <span class="onboarding-map-pin onboarding-map-pin--mate">팟</span>
+          <span class="onboarding-map-chip">300m 인증 참여</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (slide.graphic === 'recruit-chat-pay') {
+    return `
+      <div class="onboarding-graphic-panel onboarding-graphic-panel--flow">
+        <div class="onboarding-graphic-copy">
+          <span class="onboarding-graphic-eyebrow">모집부터 정산까지</span>
+          <strong>앱 안에서 한 번에 이어지는 흐름</strong>
+        </div>
+        <div class="onboarding-flow-steps">
+          <div class="onboarding-flow-step">
+            <span class="onboarding-flow-icon">1</span>
+            <b>모집</b>
+          </div>
+          <div class="onboarding-flow-arrow">→</div>
+          <div class="onboarding-flow-step">
+            <span class="onboarding-flow-icon">2</span>
+            <b>채팅</b>
+          </div>
+          <div class="onboarding-flow-arrow">→</div>
+          <div class="onboarding-flow-step">
+            <span class="onboarding-flow-icon">3</span>
+            <b>정산</b>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="onboarding-graphic-panel onboarding-graphic-panel--categories">
+      <div class="onboarding-graphic-copy">
+        <span class="onboarding-graphic-eyebrow">빠른 모집 카테고리</span>
+        <strong>배달, 택시, 구독을 바로 시작</strong>
+      </div>
+      <div class="onboarding-category-cards">
+        <div class="onboarding-category-card">
+          <span class="onboarding-category-icon">배</span>
+          <b>배달팟</b>
+          <small>최소 금액 맞추기</small>
+        </div>
+        <div class="onboarding-category-card">
+          <span class="onboarding-category-icon">택</span>
+          <b>택시팟</b>
+          <small>남는 자리 바로 합류</small>
+        </div>
+        <div class="onboarding-category-card">
+          <span class="onboarding-category-icon">구</span>
+          <b>구독팟</b>
+          <small>정산 후 계정 공유</small>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderHomeTrustPanel() {
   const summary = verificationSummary();
   const baseItems = Array.isArray(state.trustHighlights) ? state.trustHighlights : [
@@ -2869,6 +3106,10 @@ function renderOnboarding() {
 
   app.innerHTML = `
     <section class="onboarding-screen onboarding-screen--scene screen-enter">
+      <div class="onboarding-scene-layer" aria-hidden="true">
+        <img class="onboarding-scene-image" src="images/onboarding-campus.png" alt="" decoding="async">
+      </div>
+
       <div class="onboarding-pager">
         ${state.onboardingSlides.map((item, index) => `
           <button
@@ -2885,8 +3126,8 @@ function renderOnboarding() {
         <p>${slide.description}</p>
       </div>
 
-      <div class="onboarding-photo-card onboarding-graphic onboarding-graphic--${slide.graphic}" aria-hidden="true">
-        <div class="onboarding-photo"></div>
+      <div class="onboarding-photo-card" aria-hidden="true">
+        ${renderOnboardingGraphic(slide)}
       </div>
 
       <div class="student-chip-row onboarding-support-row">

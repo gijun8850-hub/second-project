@@ -98,6 +98,79 @@ function onboardingSupportChips(slide) {
   return (chipsByGraphic[slide.graphic] || []).map((item) => `<span class="student-chip">${item}</span>`).join('');
 }
 
+function renderOnboardingGraphic(slide) {
+  if (slide.graphic === 'campus-map') {
+    return `
+      <div class="onboarding-graphic-panel onboarding-graphic-panel--map">
+        <div class="onboarding-graphic-copy">
+          <span class="onboarding-graphic-eyebrow">내 주변 캠퍼스 맵</span>
+          <strong>근처 대학생과 바로 연결</strong>
+        </div>
+        <div class="onboarding-map-card">
+          <div class="onboarding-map-grid"></div>
+          <span class="onboarding-map-ring"></span>
+          <span class="onboarding-map-pin onboarding-map-pin--center">나</span>
+          <span class="onboarding-map-pin onboarding-map-pin--mate">팟</span>
+          <span class="onboarding-map-chip">300m 인증 참여</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (slide.graphic === 'recruit-chat-pay') {
+    return `
+      <div class="onboarding-graphic-panel onboarding-graphic-panel--flow">
+        <div class="onboarding-graphic-copy">
+          <span class="onboarding-graphic-eyebrow">모집부터 정산까지</span>
+          <strong>앱 안에서 한 번에 이어지는 흐름</strong>
+        </div>
+        <div class="onboarding-flow-steps">
+          <div class="onboarding-flow-step">
+            <span class="onboarding-flow-icon">1</span>
+            <b>모집</b>
+          </div>
+          <div class="onboarding-flow-arrow">→</div>
+          <div class="onboarding-flow-step">
+            <span class="onboarding-flow-icon">2</span>
+            <b>채팅</b>
+          </div>
+          <div class="onboarding-flow-arrow">→</div>
+          <div class="onboarding-flow-step">
+            <span class="onboarding-flow-icon">3</span>
+            <b>정산</b>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="onboarding-graphic-panel onboarding-graphic-panel--categories">
+      <div class="onboarding-graphic-copy">
+        <span class="onboarding-graphic-eyebrow">빠른 모집 카테고리</span>
+        <strong>배달, 택시, 구독을 바로 시작</strong>
+      </div>
+      <div class="onboarding-category-cards">
+        <div class="onboarding-category-card">
+          <span class="onboarding-category-icon">배</span>
+          <b>배달팟</b>
+          <small>최소 금액 맞추기</small>
+        </div>
+        <div class="onboarding-category-card">
+          <span class="onboarding-category-icon">택</span>
+          <b>택시팟</b>
+          <small>남는 자리 바로 합류</small>
+        </div>
+        <div class="onboarding-category-card">
+          <span class="onboarding-category-icon">구</span>
+          <b>구독팟</b>
+          <small>정산 후 계정 공유</small>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderHomeTrustPanel() {
   const summary = verificationSummary();
   const baseItems = Array.isArray(state.trustHighlights) ? state.trustHighlights : [
@@ -687,6 +760,10 @@ function renderOnboarding() {
 
   app.innerHTML = `
     <section class="onboarding-screen onboarding-screen--scene screen-enter">
+      <div class="onboarding-scene-layer" aria-hidden="true">
+        <img class="onboarding-scene-image" src="images/onboarding-campus.png" alt="" decoding="async">
+      </div>
+
       <div class="onboarding-pager">
         ${state.onboardingSlides.map((item, index) => `
           <button
@@ -703,8 +780,8 @@ function renderOnboarding() {
         <p>${slide.description}</p>
       </div>
 
-      <div class="onboarding-photo-card onboarding-graphic onboarding-graphic--${slide.graphic}" aria-hidden="true">
-        <div class="onboarding-photo"></div>
+      <div class="onboarding-photo-card" aria-hidden="true">
+        ${renderOnboardingGraphic(slide)}
       </div>
 
       <div class="student-chip-row onboarding-support-row">
