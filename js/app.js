@@ -443,6 +443,23 @@ function renderSignupPanel() {
   `;
 }
 
+function renderTrustReminder() {
+  return `
+    <article class="glass-card">
+      <div class="section-heading">
+        <h2>같은 학교 메이트와 더 안심하고 시작</h2>
+        <span>선택형 학생 인증</span>
+      </div>
+      <p>검증된 캠퍼스 메이트를 중심으로 만나고, 에스크로 안전 정산과 네이버페이 포인트 적립 흐름까지 한 번에 이어져요.</p>
+      <div class="trust-row">
+        <span class="trust-badge">검증된 캠퍼스 메이트</span>
+        <span class="trust-badge">에스크로 안전 정산</span>
+        <span class="trust-badge">네이버페이 포인트 적립</span>
+      </div>
+    </article>
+  `;
+}
+
 function renderAuth() {
   const isLogin = state.authMode === 'login';
 
@@ -455,6 +472,34 @@ function renderAuth() {
       </div>
 
       ${isLogin ? renderLoginPanel() : renderSignupPanel()}
+      ${renderTrustReminder()}
+    </section>
+  `;
+}
+
+function renderVerification() {
+  app.innerHTML = `
+    <section class="screen screen-enter auth-screen verification-screen">
+      ${backButton('auth')}
+
+      <div class="page-title">
+        <h1>검증된 캠퍼스 메이트로 이어지는 학생 인증</h1>
+        <p>같은 학교 참여를 더 안심하게 만드는 선택 단계예요. 실제 연동 없이 UX만 먼저 보여드려요.</p>
+      </div>
+
+      ${renderTrustReminder()}
+
+      <div class="login-card glass-card">
+        <div class="section-heading">
+          <h2>학생 인증 방식 선택</h2>
+          <span>완료 후 바로 홈으로 이동</span>
+        </div>
+        <div class="info-row"><span>우선 추천</span><strong>네이버 학생증 인증</strong></div>
+        <div class="info-row"><span>대안 방법</span><strong>학교 이메일 확인</strong></div>
+        <button class="gradient-button full-button" type="button" data-verify-method="naver_student_id">네이버 학생증으로 인증하기</button>
+        <button class="secondary-button full-button" type="button" data-verify-method="school_email">학교 이메일로 인증하기</button>
+        <button class="ghost-button full-button" type="button" data-skip-verification>나중에 인증할게요</button>
+      </div>
     </section>
   `;
 }
@@ -930,6 +975,9 @@ function render() {
     case 'auth':
       renderAuth();
       break;
+    case 'verification':
+      renderVerification();
+      break;
     case 'login':
       renderLogin();
       break;
@@ -956,6 +1004,8 @@ app.addEventListener('click', (event) => {
   const onboardingNextButton = event.target.closest('[data-onboarding-next]');
   const onboardingPageButton = event.target.closest('[data-onboarding-page]');
   const authTabButton = event.target.closest('[data-auth-tab]');
+  const verifyMethodButton = event.target.closest('[data-verify-method]');
+  const skipVerificationButton = event.target.closest('[data-skip-verification]');
 
   if (onboardingCategoryButton) {
     state.selectedCategory = onboardingCategoryButton.dataset.onboardingCategory;
@@ -978,6 +1028,28 @@ app.addEventListener('click', (event) => {
   if (authTabButton) {
     state.authMode = authTabButton.dataset.authTab;
     renderAuth();
+    return;
+  }
+
+  if (verifyMethodButton) {
+    const method = verifyMethodButton.dataset.verifyMethod;
+
+    if (method === 'naver_student_id') {
+      showToast('네이버 학생증 인증이 완료됐어요. 검증된 캠퍼스 메이트와 안심하고 시작해 보세요.');
+      setRoute('home');
+      return;
+    }
+
+    if (method === 'school_email') {
+      showToast('학교 이메일 확인이 완료됐어요. 검증된 캠퍼스 메이트와 안심하고 시작해 보세요.');
+      setRoute('home');
+      return;
+    }
+  }
+
+  if (skipVerificationButton) {
+    showToast('학생 인증은 나중에 해도 괜찮아요. 먼저 홈에서 팟을 둘러보세요.');
+    setRoute('home');
     return;
   }
 
@@ -1164,9 +1236,9 @@ app.addEventListener('submit', (event) => {
       return;
     }
 
-    showToast(`${email || '회원가입 정보'} 저장 완료. 로그인 후 계속할 수 있어요.`);
     state.authMode = 'login';
-    renderAuth();
+    showToast(`${email || '회원가입 정보'} 저장 완료. 학생 인증을 이어서 같은 학교 메이트와 더 안심하고 시작해 보세요.`);
+    setRoute('verification');
     return;
   }
   if (event.target.id !== 'create-form') return;

@@ -142,6 +142,52 @@ function createHarness() {
   };
 }
 
+function openAuthEntry(harness) {
+  harness.dispatchClick({
+    '[data-onboarding-page]': {
+      dataset: { onboardingPage: '2' }
+    }
+  });
+  harness.dispatchClick({
+    '[data-route]': {
+      dataset: { route: 'auth' }
+    }
+  });
+
+  assert.match(harness.app.innerHTML, /auth-tabs/);
+}
+
+function openSignupEntry(harness) {
+  openAuthEntry(harness);
+  harness.dispatchClick({
+    '[data-auth-tab]': {
+      dataset: { authTab: 'signup' }
+    }
+  });
+
+  assert.match(harness.app.innerHTML, /signup-form/);
+}
+
+function submitSignup(harness, overrides = {}) {
+  return harness.dispatchSubmit({
+    id: 'signup-form',
+    __formData: {
+      email: 'student@gachon.ac.kr',
+      password: 'secret123',
+      passwordConfirm: 'secret123',
+      ...overrides
+    }
+  });
+}
+
+function reachVerification(harness) {
+  openSignupEntry(harness);
+  const prevented = submitSignup(harness);
+  assert.equal(prevented, true);
+  assert.match(harness.app.innerHTML, /data-verify-method="naver_student_id"/);
+  return harness;
+}
+
 test('app shell exposes home hub and control tokens', () => {
   [
     'radius-filter',
@@ -201,12 +247,13 @@ test('entry flow source keeps one onboarding renderer and SPA signup submit hand
   assert.match(appSource, /passwordConfirm/);
   assert.match(appSource, /event\.preventDefault\(\);/);
   assert.match(appSource, /showToast\(/);
+  assert.doesNotMatch(appSource, /로그인 후 계속할 수 있어요/);
   assert.doesNotMatch(appSource, /School verification is available in the next step/);
   assert.doesNotMatch(appSource, /onboarding-chip-block/);
   assert.doesNotMatch(appSource, /onboarding-login-link/);
 });
 
-test('auth shell exposes login signup tabs and realistic account controls', () => {
+test('auth shell exposes login signup tabs, realistic account controls, and trust reminders', () => {
   [
     'renderAuth',
     'auth-tabs',
@@ -216,7 +263,23 @@ test('auth shell exposes login signup tabs and realistic account controls', () =
     'signup-password-confirm',
     'remember-login',
     'find-account-link',
-    '카카오로 시작하기'
+    '카카오로 시작하기',
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ].forEach((token) => {
+    assert.ok(appSource.includes(token), `Missing token: ${token}`);
+  });
+});
+
+test('verification flow source exposes dedicated route tokens and simulated options', () => {
+  [
+    'function renderVerification',
+    "case 'verification'",
+    "setRoute('verification')",
+    'data-verify-method="naver_student_id"',
+    'data-verify-method="school_email"',
+    'data-skip-verification'
   ].forEach((token) => {
     assert.ok(appSource.includes(token), `Missing token: ${token}`);
   });
@@ -243,52 +306,84 @@ test('home cards expose compact CTA sizing tokens for join and chat actions', ()
   });
 });
 
-test('runtime harness keeps onboarding and signup flows inside the SPA', () => {
+test('runtime harness surfaces trust reminders on auth entry', () => {
   const harness = createHarness();
 
-  assert.match(harness.app.innerHTML, /onboarding-pager/);
+  openAuthEntry(harness);
 
-  harness.dispatchClick({
-    '[data-onboarding-page]': {
-      dataset: { onboardingPage: '2' }
-    }
+  [
+    '검증된 캠퍼스 메이트',
+    '에스크로 안전 정산',
+    '네이버페이 포인트 적립'
+  ].forEach((copy) => {
+    assert.match(harness.app.innerHTML, new RegExp(copy));
   });
-  harness.dispatchClick({
-    '[data-route]': {
-      dataset: { route: 'auth' }
-    }
-  });
+});
 
-  assert.match(harness.app.innerHTML, /auth-tabs/);
-  assert.match(harness.app.innerHTML, /signup-form|login-form/);
+test('runtime harness keeps mismatched signup inside the SPA auth flow', () => {
+  const harness = createHarness();
 
-  const mismatchPrevented = harness.dispatchSubmit({
-    id: 'signup-form',
-    __formData: {
-      email: 'student@gachon.ac.kr',
-      password: 'secret123',
-      passwordConfirm: 'different123'
-    }
+  openSignupEntry(harness);
+  const mismatchPrevented = submitSignup(harness, {
+    passwordConfirm: 'different123'
   });
 
   assert.equal(mismatchPrevented, true);
   assert.match(harness.app.innerHTML, /auth-tabs/);
   assert.match(harness.app.innerHTML, /signup-form/);
   assert.match(harness.toast.textContent, /비밀번호/);
-  assert.doesNotMatch(harness.toast.textContent, /로그인 후 계속/);
+  assert.doesNotMatch(harness.toast.textContent, /학생 인증/);
+});
 
-  const successPrevented = harness.dispatchSubmit({
-    id: 'signup-form',
-    __formData: {
-      email: 'student@gachon.ac.kr',
-      password: 'secret123',
-      passwordConfirm: 'secret123'
+test('runtime harness routes successful signup into the verification screen', () => {
+  const harness = createHarness();
+
+  reachVerification(harness);
+
+  assert.doesNotMatch(harness.app.innerHTML, /auth-tabs/);
+  assert.match(harness.app.innerHTML, /data-verify-method="naver_student_id"/);
+  assert.match(harness.app.innerHTML, /data-verify-method="school_email"/);
+  assert.match(harness.app.innerHTML, /data-skip-verification/);
+});
+
+test('runtime harness completes simulated Naver student ID verification and routes home', () => {
+  const harness = createHarness();
+
+  reachVerification(harness);
+  harness.dispatchClick({
+    '[data-verify-method]': {
+      dataset: { verifyMethod: 'naver_student_id' }
     }
   });
 
-  assert.equal(successPrevented, true);
-  assert.match(harness.app.innerHTML, /auth-tabs/);
-  assert.match(harness.app.innerHTML, /login-form/);
-  assert.match(harness.toast.textContent, /로그인 후 계속/);
-  assert.doesNotMatch(harness.toast.textContent, /verification/i);
+  assert.match(harness.app.innerHTML, /hub-highlight/);
+  assert.match(harness.toast.textContent, /네이버 학생증/);
+});
+
+test('runtime harness completes simulated school email verification and routes home', () => {
+  const harness = createHarness();
+
+  reachVerification(harness);
+  harness.dispatchClick({
+    '[data-verify-method]': {
+      dataset: { verifyMethod: 'school_email' }
+    }
+  });
+
+  assert.match(harness.app.innerHTML, /hub-highlight/);
+  assert.match(harness.toast.textContent, /학교 이메일/);
+});
+
+test('runtime harness allows skipping optional student verification and routes home', () => {
+  const harness = createHarness();
+
+  reachVerification(harness);
+  harness.dispatchClick({
+    '[data-skip-verification]': {
+      dataset: {}
+    }
+  });
+
+  assert.match(harness.app.innerHTML, /hub-highlight/);
+  assert.match(harness.toast.textContent, /나중에/);
 });
