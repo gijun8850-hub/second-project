@@ -69,6 +69,56 @@ em {
   animation: screenEnter 220ms ease;
 }
 
+.auth-screen {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding-top: 38px;
+  padding-bottom: 40px;
+}
+
+.verification-screen {
+  gap: 16px;
+}
+
+.verification-screen .page-title {
+  max-width: 304px;
+}
+
+.verification-screen .login-card {
+  gap: 16px;
+  padding: 20px;
+}
+
+.verification-screen .full-button + .full-button {
+  margin-top: 4px;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 6px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.76), 0 18px 34px rgba(80, 17, 110, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.auth-tabs button {
+  min-height: 48px;
+  border-radius: 18px;
+  color: var(--color-muted);
+  background: transparent;
+  font-weight: 800;
+}
+
+.auth-tabs button.is-active {
+  color: var(--color-main);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(80, 17, 110, 0.08);
+}
+
 @keyframes screenEnter {
   from {
     opacity: 0;
@@ -444,11 +494,14 @@ em {
 }
 
 .login-card {
+  display: grid;
+  gap: 18px;
   padding: 18px;
   backdrop-filter: blur(16px);
 }
 
-.login-form {
+.login-form,
+.signup-form {
   gap: 16px;
 }
 
@@ -799,6 +852,48 @@ em {
   min-height: 104px;
   padding: 14px;
   resize: vertical;
+}
+
+.remember-login {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(232, 214, 242, 0.96);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.remember-login span {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.remember-login input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: none;
+  accent-color: var(--color-main);
+}
+
+.find-account-link {
+  justify-self: center;
+  width: auto;
+  min-height: 24px;
+  padding: 0;
+  color: #7d35b7;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .filter-row {
